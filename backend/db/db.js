@@ -16,8 +16,8 @@ const eventSchema = new Schema({
     name: String,
     description: String,
     date: { type: Date, required: true },
-    total_tickets: Integer,
-    ticket_price: Integer,
+    total_tickets: Number,
+    ticket_price: Number,
     contract_address: String,
     created_at: { type: Number, default: (new Date()).getTime() }
 })
