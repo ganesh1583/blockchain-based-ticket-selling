@@ -1,12 +1,16 @@
 const { Router } = require('express')
-
-const { userSchema } = require("../db/db");
+const { userModel } = require("../db/db");
 
 const usersRouter = Router();
 
 // Register a new host (username, password, wallet)
-usersRouter.post('/signup', (req,res, next)=>{
-    res.send("Register");
+usersRouter.post('/signup', (req,res, next) => {
+    const { username, wallet_address } = req.body;
+    try {
+        await userModel.create({
+            
+        })
+    }
 })
 
 // Authenticate host with username/password or wallet
@@ -14,7 +18,7 @@ usersRouter.post('/signin', (req,res,next) => {
     res.send("Login user")
 })
 // Logout host
-usersRouter.post('/logout', (req,res,next)=>{
+usersRouter.post('/logout', (req,res,next) => {
     res.send("Logout user");
 })
 
