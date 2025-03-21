@@ -10,10 +10,12 @@ app.use(express.json());
 const { usersRouter } = require("./routes/usersRouter");
 const { concertsRouter } = require("./routes/concertsRouter");
 const { ticketsRouter } = require("./routes/ticketsRouter");
+const { transactionsRouter} = require("./routes/transactionsRouter")
 
 app.use("/api/users", usersRouter);
 app.use("/api/concerts", concertsRouter);
 app.use("/api/tickets", ticketsRouter)
+app.use("/api/transactions", transactionsRouter)
 
 async function main() {
   // await mongoose.connect(process.env.MONGO_URL)

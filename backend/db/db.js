@@ -44,9 +44,9 @@ const eventModel = mongoose.model("event", eventSchema);
 const ticketModel = mongoose.model("ticket",ticketSchema);
 const transactionModel = mongoose.model("transaction", transactionSchema);
 
-module.exports({
+module.exports = {
     userModel: userModel,
     eventModel: eventModel,
     ticketModel: ticketModel,
     transactionModel: transactionModel
-})
+}

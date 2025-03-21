@@ -6,9 +6,9 @@ const ticketsRouter = Router();
 ticketsRouter.get("/buy", (req,res,next) => {
     res.send("Buy a ticket (wallet address required, triggers NFT minting)");
 })
-ticketsRouter.post('/:wallet_address', (req,res,next) => {
+ticketsRouter.get('/:wallet_address', (req,res,next) => {
     const wallet_address = req.params.wallet_address;
-    res.send("wallet Address:",wallet_address);
+    res.send("wallet address:",wallet_address);
 })
 
 module.exports = {
