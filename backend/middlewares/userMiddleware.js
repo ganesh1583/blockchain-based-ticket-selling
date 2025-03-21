@@ -13,7 +13,6 @@ function userMiddleware(req, res, next) {
             message: "You are not signed in"
         })
     }
-
 }
 
 module.exports = {

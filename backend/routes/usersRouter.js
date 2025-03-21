@@ -80,7 +80,7 @@ usersRouter.post('/logout', (req,res,next)=>{
     
 })
 
-userRouter.post('/nonce', async (req, res, next) => {
+usersRouter.post('/nonce', async (req, res, next) => {
     const {wallet_address} = req.body;
     if (!wallet_address) return res.status(400).json({ error: "Wallet address required" });
 

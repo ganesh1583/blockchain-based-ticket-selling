@@ -18,7 +18,7 @@ app.use("/api/tickets", ticketsRouter)
 app.use("/api/transactions", transactionsRouter)
 
 async function main() {
-  // await mongoose.connect(process.env.MONGO_URL)
+  await mongoose.connect(process.env.MONGO_URL)
   app.listen(process.env.PORT);
   console.log("Listening on port 5000");
 }
