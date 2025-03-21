@@ -39,14 +39,21 @@ const transactionSchema = new Schema({
     timestamp: { type: Number, default: (new Date()).getTime() }
 })
 
+const nonceSchema = new Schema({
+    wallet_address: {type: String, unique: true},
+    nonce_value: Number
+})
+
 const userModel = mongoose.model("user", userSchema);
 const eventModel = mongoose.model("event", eventSchema);
 const ticketModel = mongoose.model("ticket",ticketSchema);
 const transactionModel = mongoose.model("transaction", transactionSchema);
+const nonceModel = mongoose.model("nonce", nonceSchema);
 
 module.exports = {
     userModel: userModel,
     eventModel: eventModel,
     ticketModel: ticketModel,
-    transactionModel: transactionModel
+    transactionModel: transactionModel,
+    nonceModel: nonceModel
 }
