@@ -22,7 +22,9 @@ concertsRouter.delete(":conId/delete", (req, res, next) => {
 
 // fetch all available concerts
 concertsRouter.get("/", (req, res, next) => {
-  res.send("fetch all available concerts");
+  res.json({
+    message: "You are here"
+  })
 });
 concertsRouter.get("/:conId", (req, res, next) => {
   res.send("Fetch details of a specific concert");
