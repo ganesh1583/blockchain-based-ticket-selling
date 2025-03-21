@@ -4,12 +4,15 @@ const { userModel } = require("../db/db");
 const usersRouter = Router();
 
 // Register a new host (username, password, wallet)
-usersRouter.post('/signup', (req,res, next) => {
+usersRouter.post('/signup', async (req,res, next) => {
     const { username, wallet_address } = req.body;
     try {
         await userModel.create({
-            
+            username: username,
+            wallet_address: wallet_address
         })
+    } catch (e) {
+        console.error(e);
     }
 })
 
