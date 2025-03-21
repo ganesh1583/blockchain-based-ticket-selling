@@ -9,7 +9,7 @@ transactionsRouter.get("/:wallet_address", (req, res, next) => {
 });
 
 // Fetch transactions for a specific concert
-transactionsRouter.post("/:concert_id", (req, res, next) => {
+transactionsRouter.get("/:concert_id", (req, res, next) => {
   const concert_id = req.params.concert_id;
   res.send("concert id is:", concert_id);
 });
