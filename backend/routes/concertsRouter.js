@@ -1,22 +1,25 @@
 const { Router } = require("express");
 const { eventSchema } = require("../db/db");
-
+const { userMiddleware } = require("../middlewares/userMiddleware")
 const concertsRouter = Router();
 
 // Create a new concert (requires authentication)
-concertsRouter.post("/create", (req, res, next) => {
+concertsRouter.post("/create",userMiddleware, (req, res, next) => {
   res.send("Create concerts");
 });
+
 // Fetch concerts created by the logged-in host
-concertsRouter.get("/my", (req, res, next) => {
+concertsRouter.get("/my",userMiddleware, (req, res, next) => {
   res.send("My registered concerts");
 });
+
 // Update concert details
-concertsRouter.put(":conId/update", (req, res, next) => {
+concertsRouter.put(":conId/update",userMiddleware, (req, res, next) => {
   res.send("Update concert details");
 });
+
 // Delete a concert
-concertsRouter.delete(":conId/delete", (req, res, next) => {
+concertsRouter.delete(":conId/delete",userMiddleware, (req, res, next) => {
   res.send("Delete concert details");
 });
 
