@@ -4,7 +4,7 @@ const { eventSchema } = require("../db/db");
 const concertsRouter = Router();
 
 // Create a new concert (requires authentication)
-concertsRouter.get("/create", (req, res, next) => {
+concertsRouter.post("/create", (req, res, next) => {
   res.send("Create concerts");
 });
 // Fetch concerts created by the logged-in host
@@ -12,11 +12,11 @@ concertsRouter.get("/my", (req, res, next) => {
   res.send("My registered concerts");
 });
 // Update concert details
-concertsRouter.get(":conId/update", (req, res, next) => {
+concertsRouter.put(":conId/update", (req, res, next) => {
   res.send("Update concert details");
 });
 // Delete a concert
-concertsRouter.get(":conId/delete", (req, res, next) => {
+concertsRouter.delete(":conId/delete", (req, res, next) => {
   res.send("Delete concert details");
 });
 
