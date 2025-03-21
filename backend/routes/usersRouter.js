@@ -1,5 +1,7 @@
 const { Router } = require('express')
-const { userModel } = require("../db/db");
+const { v4: uuidv4 } = require("uuid");
+
+const { userSchema } = require("../db/db");
 
 const usersRouter = Router();
 
@@ -15,18 +17,13 @@ usersRouter.post('/signup', async (req,res, next) => {
         console.error(e);
     }
 })
-
 // Authenticate host with username/password or wallet
 usersRouter.post('/signin', (req,res,next) => {
     res.send("Login user")
 })
 // Logout host
-usersRouter.post('/logout', (req,res,next) => {
+usersRouter.post('/logout', (req,res,next)=>{
     res.send("Logout user");
-})
-
-usersRouter.post('/nonce', (req, res, next) => {
-
 })
 
 module.exports = {
