@@ -12,8 +12,8 @@ const userSchema = new Schema({
 
 const eventSchema = new Schema({
     event_id: {type: Number, required: true},
-    host_id: {type: ObjectId, ref: "userModel"},
-    name: String,
+    host_id: {type: ObjectId, ref: "user"},
+    event_name: String,
     // event_img: {},
     description: String,
     event_date: { type: Date, required: true },
