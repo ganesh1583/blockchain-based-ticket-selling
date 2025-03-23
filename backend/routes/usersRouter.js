@@ -1,8 +1,8 @@
 const { Router } = require('express')
 const { userModel,nonceModel } = require("../db/db");
-const jwt = require("jsonwebtoken");
+const { jwt } = require("jsonwebtoken");
 const { v4: uuidv4 } = require("uuid");
-
+const { ethers } = require("ethers")
 const dotenv = require("dotenv");
 dotenv.config();
 
@@ -14,6 +14,7 @@ usersRouter.post('/signup', async (req,res, next) => {
         wallet_address: walletAddress
     })
 
+    if (!nonce_val) return res.status(400).json({ error: "Nonce not found" });
     const nonce = nonce_val.nonce_value;
 
     if (!nonce) return res.status(400).json({ error: "Nonce not found" });
@@ -49,6 +50,7 @@ usersRouter.post('/signin', async (req,res,next) => {
         wallet_address: walletAddress
     })
 
+    if (!nonce_val) return res.status(400).json({ error: "Nonce not found" });
     const nonce = nonce_val.nonce_value;
 
     if (!nonce) return res.status(400).json({ error: "Nonce not found" });
@@ -75,9 +77,10 @@ usersRouter.post('/signin', async (req,res,next) => {
 
 
 
-usersRouter.post('/logout', (req,res,next)=>{
-    
-})
+usersRouter.post('/logout', (req, res) => {
+    res.json({ message: "Logged out successfully" });
+});
+
 
 usersRouter.post('/nonce', async (req, res, next) => {
     const {wallet_address} = req.body;
