@@ -68,9 +68,10 @@ concertsRouter.get("/:wallet_address", async (req, res, next) => {
 });
 // Update concert details
 concertsRouter.put(":conId/update", (req, res, next) => {
-  res.send("Update concert details");
-
   const { event_name, description, duration, building, area, city, state, pincode} = req.body;
+
+  if(!event_name || !description || !duration || !building || !area || !city || !state || !pincode)
+  res.send("Update concert details");
 
 });
 // Delete a concert

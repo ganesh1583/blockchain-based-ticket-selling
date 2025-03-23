@@ -4,23 +4,22 @@ const Schema = mongoose.Schema;
 const ObjectId = mongoose.ObjectId;
 
 const userSchema = new Schema({
-    user_id: {type: Number, unique: true, required: true},
-    username: {type: String, unique: true, required: true},
-    wallet_address: String,
-    created_at: { type: Number, default: (new Date()).getTime() },
-})
+    user_id: { type: Number, unique: true, required: true },
+    username: { type: String, unique: true, required: true },
+    wallet_address: { type: String, unique: true, required: true },
+    created_at: { type: Date, default: Date.now }
+});
 
 const eventSchema = new Schema({
-    event_id: {type: Number, required: true},
-    host_id: {type: ObjectId, ref: "user"},
-    event_name: String,
-    // event_img: {},
-    description: String,
+    event_id: { type: Number, unique: true, required: true },
+    host_id: { type: ObjectId, ref: "user" },
+    name: { type: String, required: true },
+    description: { type: String, required: true },
     event_date: { type: Date, required: true },
-    duration: {type: Number},
-    total_tickets: Number,
-    ticket_price: Number,
-    wallet_address: String,//used in userSchema so use from there
+    duration: { type: Number },
+    total_tickets: { type: Number, required: true },
+    ticket_price: { type: Number, required: true },
+    wallet_address: { type: String, required: true },
     venue: {  
         building: { type: String, required: true },
         area: { type: String, required: true },
@@ -28,41 +27,41 @@ const eventSchema = new Schema({
         state: { type: String, required: true },
         pincode: { type: String, required: true }
     },
-    created_at: { type: Number, default: (new Date()).getTime() }
-})
+    created_at: { type: Date, default: Date.now }
+});
 
 const ticketSchema = new Schema({
-    ticket_id: {type: Number, required: true},
-    concert_id: {type: ObjectId, ref: "eventModel"},
-    wallet_address: String,
-    token_id: Number,
-    purchase_date: Date,
-})
+    ticket_id: { type: Number, unique: true, required: true },
+    concert_id: { type: ObjectId, ref: "event" },
+    wallet_address: { type: String, required: true },
+    token_id: { type: Number, unique: true, required: true },
+    purchase_date: { type: Date, default: Date.now }
+});
 
 const transactionSchema = new Schema({
-    transaction_id : {type: Number, unique: true},
-    wallet_address: String,
-    concert_id: {type: ObjectId, ref: "eventModel"},
-    amount_paid: Number,
-    transaction_hash: String,
-    timestamp: { type: Number, default: (new Date()).getTime() }
-})
+    transaction_id: { type: Number, unique: true, required: true },
+    wallet_address: { type: String, required: true },
+    concert_id: { type: ObjectId, ref: "event" },
+    amount_paid: { type: Number, required: true },
+    transaction_hash: { type: String, required: true },
+    timestamp: { type: Date, default: Date.now }
+});
 
 const nonceSchema = new Schema({
-    wallet_address: {type: String, unique: true},
-    nonce_value: Number
-})
+    wallet_address: { type: String, unique: true, required: true },
+    nonce_value: { type: Number, required: true }
+});
 
 const userModel = mongoose.model("user", userSchema);
 const eventModel = mongoose.model("event", eventSchema);
-const ticketModel = mongoose.model("ticket",ticketSchema);
+const ticketModel = mongoose.model("ticket", ticketSchema);
 const transactionModel = mongoose.model("transaction", transactionSchema);
 const nonceModel = mongoose.model("nonce", nonceSchema);
 
 module.exports = {
-    userModel: userModel,
-    eventModel: eventModel,
-    ticketModel: ticketModel,
-    transactionModel: transactionModel,
-    nonceModel: nonceModel
-}
+    userModel,
+    eventModel,
+    ticketModel,
+    transactionModel,
+    nonceModel
+};
