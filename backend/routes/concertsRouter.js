@@ -1,6 +1,6 @@
 const { Router } = require("express");
 const { eventModel } = require("../db/db");
-
+const { userMiddleware } =require("../middlewares/userMiddleware")
 const concertsRouter = Router();
 
 // Create a new concert (requires authentication)
@@ -8,7 +8,7 @@ concertsRouter.post("/create", async (req, res, next) => {
   try {
     const {
       event_id,
-      name,
+      event_name,
       description,
       event_date,
       duration,
@@ -24,7 +24,7 @@ concertsRouter.post("/create", async (req, res, next) => {
 
     if (
       !event_id ||
-      !name ||
+      !event_name ||
       !event_date ||
       !duration ||
       !total_tickets ||
@@ -34,7 +34,7 @@ concertsRouter.post("/create", async (req, res, next) => {
     }
     const newEvent = await eventModel.create({
       event_id,
-      name,
+      event_name,
       description,
       event_date,
       duration,
@@ -60,15 +60,19 @@ concertsRouter.post("/create", async (req, res, next) => {
 concertsRouter.get("/:wallet_address", async (req, res, next) => {
   const wallet_address = req.params.wallet_address;
   const eventData = await eventModel.find({
-    walletAddress: wallet_address
+    wallet_address: wallet_address
   })
   if(!eventData)
     res.status(500).json({message: "No data found!"});
   res.status(200).json({eventData: eventData})
 });
 // Update concert details
-concertsRouter.put(":conId/update",userMiddleware, (req, res, next) => {
+concertsRouter.put(":conId/update", (req, res, next) => {
+  const { event_name, description, duration, building, area, city, state, pincode} = req.body;
+
+  if(!event_name || !description || !duration || !building || !area || !city || !state || !pincode)
   res.send("Update concert details");
+
 });
 
 // Delete a concert
