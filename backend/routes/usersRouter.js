@@ -71,7 +71,6 @@ usersRouter.post('/signin', async (req,res,next) => {
     } catch (error) {
         res.status(401).json({ error: "Authentication failed" });
     }
-
 })
 
 

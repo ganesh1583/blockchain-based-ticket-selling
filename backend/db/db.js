@@ -14,11 +14,20 @@ const eventSchema = new Schema({
     event_id: {type: Number, required: true},
     host_id: {type: ObjectId, ref: "userModel"},
     name: String,
+    // event_img: {},
     description: String,
-    date: { type: Date, required: true },
+    event_date: { type: Date, required: true },
+    duration: {type: Number},
     total_tickets: Number,
     ticket_price: Number,
-    contract_address: String,
+    wallet_address: String,//used in userSchema so use from there
+    venue: {  
+        building: { type: String, required: true },
+        area: { type: String, required: true },
+        city: { type: String, required: true },
+        state: { type: String, required: true },
+        pincode: { type: String, required: true }
+    },
     created_at: { type: Number, default: (new Date()).getTime() }
 })
 
