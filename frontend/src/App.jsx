@@ -1,4 +1,6 @@
 import { useState } from 'react'
+import Signup from "./components/Signup"
+// import {signin } 
 
 function App() {
   const [count, setCount] = useState(0)
@@ -6,6 +8,7 @@ function App() {
   return (
     <>
       <h1>Hello</h1>
+      <Signup />
     </>
   )
 }
