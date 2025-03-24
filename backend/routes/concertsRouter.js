@@ -3,6 +3,8 @@ const { eventModel } = require("../db/db");
 const { userMiddleware } = require("../middlewares/userMiddleware");
 const concertsRouter = Router();
 
+//there are some errors in here, will fix tomorrow
+
 // Create a new concert (requires authentication)
 concertsRouter.post("/create", async (req, res, next) => {
   try {
@@ -105,6 +107,7 @@ concertsRouter.delete("/:event_id", async (req, res, next) => {
   try {
     const event_id = req.params.event_id;
     const eventInfo = await eventModel.deleteOne({ event_id });
+    if (eventInfo.deletedCount === 0) return res.status(404).json({ message: "Event not found!" });
     if (!eventInfo) res.status(404).json({ message: "Event not found!" });
     res.status(200).json({ message: "Event deleted Successfully!" });
   } catch (error) {
