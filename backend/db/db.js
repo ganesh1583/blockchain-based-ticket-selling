@@ -13,7 +13,7 @@ const userSchema = new Schema({
 const eventSchema = new Schema({
     event_id: { type: Number, unique: true, required: true },
     host_id: { type: ObjectId, ref: "user" },
-    name: { type: String, required: true },
+    event_name: { type: String, required: true },
     description: { type: String, required: true },
     event_date: { type: Date, required: true },
     duration: { type: Number },
@@ -32,7 +32,7 @@ const eventSchema = new Schema({
 
 const ticketSchema = new Schema({
     ticket_id: { type: Number, unique: true, required: true },
-    concert_id: { type: ObjectId, ref: "event" },
+    event_id: { type: ObjectId, ref: "event" }, //changed it from concert_id => event_id
     wallet_address: { type: String, required: true },
     token_id: { type: Number, unique: true, required: true },
     purchase_date: { type: Date, default: Date.now }
@@ -41,7 +41,7 @@ const ticketSchema = new Schema({
 const transactionSchema = new Schema({
     transaction_id: { type: Number, unique: true, required: true },
     wallet_address: { type: String, required: true },
-    concert_id: { type: ObjectId, ref: "event" },
+    event_id: { type: ObjectId, ref: "event" }, //changed it from concert_id => event_id
     amount_paid: { type: Number, required: true },
     transaction_hash: { type: String, required: true },
     timestamp: { type: Date, default: Date.now }
