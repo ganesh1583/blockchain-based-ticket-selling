@@ -6,7 +6,7 @@ const concertsRouter = Router();
 //there are some errors in here, will fix tomorrow
 async function getEventId() {
   const maxEvent = await eventModel.findOne().sort({ event_id: -1 }).limit(1);
-  const maxEventId = maxEvent ? maxEvent.user_id : 0; // Default to 0 if no users exist
+  const maxEventId = maxEvent ? maxEvent.event_id : 0; // Default to 0 if no users exist
   return maxEventId + 1;
 }
 // Create a new concert (requires authentication)

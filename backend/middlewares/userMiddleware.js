@@ -2,7 +2,8 @@ const jwt = require("jsonwebtoken");
 require("dotenv").config();
 
 function userMiddleware(req, res, next) {
-    const token = req.headers['authorization'];
+    const token = req.headers.token;
+    console.log("Token in middlware : " + token);
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     console.log("token "+token)
     if(decoded) {

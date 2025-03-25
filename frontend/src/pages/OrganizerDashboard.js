@@ -61,47 +61,41 @@ const OrganizerDashboard = () => {
   const handleCreateEvent = async (e) => {
     e.preventDefault();
 
-    const token = localStorage.getItem("authToken");
-
+    const token = localStorage.getItem("token");
+    alert("Token : "+token);
     // Check if token is available
     if (!token) {
       alert("You must be logged in to create an event.");
       return;
     }
 
-    try {
-      const eventResponse = await fetch(
-        "http://localhost:5000/api/events/create",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "token": token,
-          },
-          body: JSON.stringify({
-            event_name: newEvent.title,
-            description: newEvent.description,
-            event_date: newEvent.date,
-            duration: newEvent.time,
-            total_tickets: newEvent.availableTickets,
-            ticket_price: newEvent.price,
-            address: newEvent.location,
-          }),
+    // try {
+      const eventResponse = await axios.post(
+        "http://localhost:5000/api/events/create",{
+          event_name: newEvent.title,
+          description: newEvent.description,
+          event_date: newEvent.date,
+          duration: newEvent.time,
+          total_tickets: newEvent.availableTickets,
+          ticket_price: newEvent.price,
+          address: newEvent.location,
+        },{
+            headers: {
+              token: token,
+            },
         }
       );
 
       // Handle server response
-      const responseData = await eventResponse.json();
+      // const responseData = await eventResponse.json();
+      // if(responseData.ok) {
+      //   alert("all okay");
+      // }
 
-      if (eventResponse.ok) {
-        alert("Event created successfully");
-      } else {
-        alert(`Error: ${responseData.message || "Something went wrong"}`);
-      }
-    } catch (error) {
-      console.error("Error creating event:", error);
-      alert("Error while creating event. Please try again.");
-    }
+    // } catch (error) {
+    //   console.error("Error creating event:", error);
+    //   alert("Error while creating event. Please try again.");
+    // }
 
     // Reset the form and close modal
     setNewEvent({

@@ -48,17 +48,17 @@ const RegisterPage = () => {
       });
       console.log(nonceResponse)
       // Check if the nonce response is successful
-      if (!nonceResponse.ok) {
-        throw new Error("Failed to fetch nonce");
-      }
+      // if (!nonceResponse.ok) {
+      //   throw new Error("Failed to fetch nonce");
+      // }
   
       const { nonce } = await nonceResponse.json();
       console.log("Nonce received:", nonce);
   
       // Ensure nonce is valid
-      if (!nonce) {
-        throw new Error("Invalid nonce received");
-      }
+      // if (!nonce) {
+      //   throw new Error("Invalid nonce received");
+      // }
   
       // Sign the message with the nonce
       const signature = await signer.signMessage(nonce.toString());
