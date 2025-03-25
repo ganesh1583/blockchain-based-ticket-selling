@@ -58,7 +58,7 @@ const Navbar = () => {
       });
       const { token } = await verifyResponse.json();
 
-      localStorage.setItem("authToken", token);
+      localStorage.setItem("token", token);
       setWalletAddress(account)
       alert("Login successful!");
       

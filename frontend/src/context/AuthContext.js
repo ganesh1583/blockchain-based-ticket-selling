@@ -41,6 +41,12 @@ export const AuthProvider = ({ children }) => {
       const signer = provider.getSigner();
       const address = await signer.getAddress();
 
+      const accounts = await window.ethereum.request({ method: "eth_requestAccounts" });
+
+      if (accounts.length === 0) {
+        throw new Error("No accounts found. Please unlock MetaMask or create an account.");
+      }
+
       // Check if user exists
       const response = await fetch(`http://localhost:5001/api/users/wallet/${address}`);
       let userData;

@@ -98,7 +98,6 @@ usersRouter.post("/signin", async (req, res, next) => {
   }
 
   const nonce = nonce_val.nonce_value;
-  console.log("Nonce value: " + nonce);
 
   try {
     // Verify the signature with the nonce
