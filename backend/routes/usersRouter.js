@@ -82,6 +82,28 @@ usersRouter.post("/logout", (req, res) => {
   res.json({ message: "Logged out successfully" });
 });
 
+usersRouter.get("/:wallet_address", async (req, res, next) => {
+  try {
+    const { wallet_address } = req.params;
+    if (!wallet_address)
+      return res.status(400).json({ error: "Wallet address required" });
+
+    const userData = await userModel.findOne({
+      wallet_address: wallet_address,
+    });
+
+    if (!userData) {
+      return res.status(404).json(null); // Return null if no user is found
+    }
+
+    res.json({ userData });
+  } catch (error) {
+    res
+      .status(500)
+      .json({ error: "Internal server error.", description: error.message });
+  }
+});
+
 usersRouter.post("/nonce", async (req, res, next) => {
   try {
     const { wallet_address } = req.body;
