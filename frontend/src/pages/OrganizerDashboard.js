@@ -1,25 +1,26 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom'; // Added Link import
-import './OrganizerDashboard.css';
-import axios from 'axios';
+import React, { useState, useEffect } from "react";
+import { useNavigate, Link } from "react-router-dom"; // Added Link import
+import "./OrganizerDashboard.css";
+import axios from "axios";
 
 const OrganizerDashboard = () => {
   const [events, setEvents] = useState([]);
   const [ticketSales, setTicketSales] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [activeTab, setActiveTab] = useState('overview');
+  const [activeTab, setActiveTab] = useState("overview");
   const [showCreateEvent, setShowCreateEvent] = useState(false);
   const [newEvent, setNewEvent] = useState({
-    title: '',
-    date: '',
-    time: '',
-    location: '',
-    category: '',
-    price: '',
-    availableTickets: '',
-    description: '',
-    image: ''
+    // new event data
+    title: "",
+    date: "",
+    time: "",
+    location: "",
+    category: "",
+    price: "",
+    availableTickets: "",
+    description: "",
+    image: "",
   });
 
   // Fetch data when component mounts
@@ -27,29 +28,29 @@ const OrganizerDashboard = () => {
     const fetchData = async () => {
       try {
         setLoading(true);
-        
+
         // Get events from localStorage
-        const storedEvents = localStorage.getItem('events');
+        const storedEvents = localStorage.getItem("events");
         if (storedEvents) {
           const parsedEvents = JSON.parse(storedEvents);
           setEvents(parsedEvents);
         } else {
           setEvents([]);
         }
-        
+
         // Get ticket sales from localStorage
-        const storedTickets = localStorage.getItem('tickets');
+        const storedTickets = localStorage.getItem("tickets");
         if (storedTickets) {
           const parsedTickets = JSON.parse(storedTickets);
           setTicketSales(parsedTickets);
         } else {
           setTicketSales([]);
         }
-        
+
         setLoading(false);
       } catch (error) {
-        console.error('Error fetching data:', error);
-        setError('Failed to load dashboard data');
+        console.error("Error fetching data:", error);
+        setError("Failed to load dashboard data");
         setLoading(false);
       }
     };
@@ -57,35 +58,62 @@ const OrganizerDashboard = () => {
     fetchData();
   }, []); // Empty dependency array to run only once
 
-  const handleCreateEvent = (e) => {
+  const handleCreateEvent = async (e) => {
     e.preventDefault();
-    
-    // Create new event object
-    const event = {
-      id: Date.now().toString(),
-      ...newEvent,
-      organizer: 'Current Organizer', // Replace with actual organizer info
-      createdAt: new Date().toISOString()
-    };
-    
-    // Add to events array
-    const updatedEvents = [...events, event];
-    setEvents(updatedEvents);
-    
-    // Save to localStorage
-    localStorage.setItem('events', JSON.stringify(updatedEvents));
-    
-    // Reset form and close modal
+
+    const token = localStorage.getItem("authToken");
+
+    // Check if token is available
+    if (!token) {
+      alert("You must be logged in to create an event.");
+      return;
+    }
+
+    try {
+      const eventResponse = await fetch(
+        "http://localhost:5000/api/events/create",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "token": token,
+          },
+          body: JSON.stringify({
+            event_name: newEvent.title,
+            description: newEvent.description,
+            event_date: newEvent.date,
+            duration: newEvent.time,
+            total_tickets: newEvent.availableTickets,
+            ticket_price: newEvent.price,
+            address: newEvent.location,
+          }),
+        }
+      );
+
+      // Handle server response
+      const responseData = await eventResponse.json();
+
+      if (eventResponse.ok) {
+        alert("Event created successfully");
+      } else {
+        alert(`Error: ${responseData.message || "Something went wrong"}`);
+      }
+    } catch (error) {
+      console.error("Error creating event:", error);
+      alert("Error while creating event. Please try again.");
+    }
+
+    // Reset the form and close modal
     setNewEvent({
-      title: '',
-      date: '',
-      time: '',
-      location: '',
-      category: '',
-      price: '',
-      availableTickets: '',
-      description: '',
-      image: ''
+      title: "",
+      date: "",
+      time: "",
+      location: "",
+      category: "",
+      price: "",
+      availableTickets: "",
+      description: "",
+      image: "",
     });
     setShowCreateEvent(false);
   };
@@ -94,27 +122,26 @@ const OrganizerDashboard = () => {
     const { name, value } = e.target;
     setNewEvent({
       ...newEvent,
-      [name]: value
+      [name]: value,
     });
   };
 
   const calculateTotalRevenue = () => {
     if (!ticketSales || ticketSales.length === 0) return 0;
-    return ticketSales.reduce((total, sale) => 
-      total + (sale.price * sale.quantity), 0
+    return ticketSales.reduce(
+      (total, sale) => total + sale.price * sale.quantity,
+      0
     );
   };
 
   const calculateTotalTickets = () => {
     if (!ticketSales || ticketSales.length === 0) return 0;
-    return ticketSales.reduce((total, sale) => 
-      total + sale.quantity, 0
-    );
+    return ticketSales.reduce((total, sale) => total + sale.quantity, 0);
   };
 
   const getEventSales = (eventId) => {
     if (!ticketSales || ticketSales.length === 0) return [];
-    return ticketSales.filter(sale => sale.eventId === eventId);
+    return ticketSales.filter((sale) => sale.eventId === eventId);
   };
 
   if (loading) {
@@ -132,7 +159,7 @@ const OrganizerDashboard = () => {
         <div className="header-content">
           <h1>Organizer Dashboard</h1>
           <div className="dashboard-actions">
-            <button 
+            <button
               className="create-event-btn"
               onClick={() => setShowCreateEvent(true)}
             >
@@ -144,21 +171,21 @@ const OrganizerDashboard = () => {
           </div>
         </div>
         <div className="dashboard-tabs">
-          <button 
-            className={`tab-btn ${activeTab === 'overview' ? 'active' : ''}`}
-            onClick={() => setActiveTab('overview')}
+          <button
+            className={`tab-btn ${activeTab === "overview" ? "active" : ""}`}
+            onClick={() => setActiveTab("overview")}
           >
             Overview
           </button>
-          <button 
-            className={`tab-btn ${activeTab === 'events' ? 'active' : ''}`}
-            onClick={() => setActiveTab('events')}
+          <button
+            className={`tab-btn ${activeTab === "events" ? "active" : ""}`}
+            onClick={() => setActiveTab("events")}
           >
             Events
           </button>
-          <button 
-            className={`tab-btn ${activeTab === 'sales' ? 'active' : ''}`}
-            onClick={() => setActiveTab('sales')}
+          <button
+            className={`tab-btn ${activeTab === "sales" ? "active" : ""}`}
+            onClick={() => setActiveTab("sales")}
           >
             Sales
           </button>
@@ -168,7 +195,7 @@ const OrganizerDashboard = () => {
       {showCreateEvent && (
         <div className="modal-overlay">
           <div className="modal-content">
-            <button 
+            <button
               className="close-modal"
               onClick={() => setShowCreateEvent(false)}
             >
@@ -276,7 +303,7 @@ const OrganizerDashboard = () => {
         </div>
       )}
 
-      {activeTab === 'overview' && (
+      {activeTab === "overview" && (
         <div className="dashboard-overview">
           <div className="stats-grid">
             <div className="stat-card">
@@ -290,7 +317,9 @@ const OrganizerDashboard = () => {
               <div className="stat-icon">💰</div>
               <div className="stat-info">
                 <h3>Total Revenue</h3>
-                <p className="stat-value">${calculateTotalRevenue().toFixed(2)}</p>
+                <p className="stat-value">
+                  ${calculateTotalRevenue().toFixed(2)}
+                </p>
               </div>
             </div>
             <div className="stat-card">
@@ -305,7 +334,10 @@ const OrganizerDashboard = () => {
               <div className="stat-info">
                 <h3>Active Events</h3>
                 <p className="stat-value">
-                  {events.filter(event => new Date(event.date) >= new Date()).length}
+                  {
+                    events.filter((event) => new Date(event.date) >= new Date())
+                      .length
+                  }
                 </p>
               </div>
             </div>
@@ -314,13 +346,16 @@ const OrganizerDashboard = () => {
           <div className="recent-sales">
             <h2>Recent Sales</h2>
             <div className="sales-list">
-              {ticketSales.slice(0, 5).map(sale => {
-                const event = events.find(e => e.id === sale.eventId);
+              {ticketSales.slice(0, 5).map((sale) => {
+                const event = events.find((e) => e.id === sale.eventId);
                 return (
                   <div key={sale.id} className="sale-item">
                     <div className="sale-info">
-                      <h4>{event ? event.title : 'Unknown Event'}</h4>
-                      <p>{sale.quantity} tickets - ${(sale.price * sale.quantity).toFixed(2)}</p>
+                      <h4>{event ? event.title : "Unknown Event"}</h4>
+                      <p>
+                        {sale.quantity} tickets - $
+                        {(sale.price * sale.quantity).toFixed(2)}
+                      </p>
                     </div>
                     <span className="sale-date">
                       {new Date(sale.purchaseDate).toLocaleDateString()}
@@ -333,16 +368,18 @@ const OrganizerDashboard = () => {
         </div>
       )}
 
-      {activeTab === 'events' && (
+      {activeTab === "events" && (
         <div className="dashboard-events">
           <div className="events-list">
-            {events.map(event => {
+            {events.map((event) => {
               const eventSales = getEventSales(event.id);
-              const totalRevenue = eventSales.reduce((total, sale) => 
-                total + (sale.price * sale.quantity), 0
+              const totalRevenue = eventSales.reduce(
+                (total, sale) => total + sale.price * sale.quantity,
+                0
               );
-              const totalTickets = eventSales.reduce((total, sale) => 
-                total + sale.quantity, 0
+              const totalTickets = eventSales.reduce(
+                (total, sale) => total + sale.quantity,
+                0
               );
 
               return (
@@ -353,7 +390,9 @@ const OrganizerDashboard = () => {
                   </div>
                   <div className="event-info">
                     <h3>{event.title}</h3>
-                    <p className="event-date">{new Date(event.date).toLocaleDateString()}</p>
+                    <p className="event-date">
+                      {new Date(event.date).toLocaleDateString()}
+                    </p>
                     <p className="event-location">{event.location}</p>
                     <div className="event-stats">
                       <div className="stat">
@@ -370,7 +409,9 @@ const OrganizerDashboard = () => {
                       </div>
                       <div className="stat">
                         <span className="label">Revenue:</span>
-                        <span className="value">${totalRevenue.toFixed(2)}</span>
+                        <span className="value">
+                          ${totalRevenue.toFixed(2)}
+                        </span>
                       </div>
                     </div>
                   </div>
@@ -381,13 +422,15 @@ const OrganizerDashboard = () => {
         </div>
       )}
 
-      {activeTab === 'sales' && (
+      {activeTab === "sales" && (
         <div className="dashboard-sales">
           <div className="sales-filters">
             <select className="filter-select">
               <option value="all">All Events</option>
-              {events.map(event => (
-                <option key={event.id} value={event.id}>{event.title}</option>
+              {events.map((event) => (
+                <option key={event.id} value={event.id}>
+                  {event.title}
+                </option>
               ))}
             </select>
             <select className="filter-select">
@@ -411,16 +454,22 @@ const OrganizerDashboard = () => {
                 </tr>
               </thead>
               <tbody>
-                {ticketSales.map(sale => {
-                  const event = events.find(e => e.id === sale.eventId);
+                {ticketSales.map((sale) => {
+                  const event = events.find((e) => e.id === sale.eventId);
                   return (
                     <tr key={sale.id}>
-                      <td>{event ? event.title : 'Unknown Event'}</td>
-                      <td>{event ? new Date(event.date).toLocaleDateString() : 'N/A'}</td>
+                      <td>{event ? event.title : "Unknown Event"}</td>
+                      <td>
+                        {event
+                          ? new Date(event.date).toLocaleDateString()
+                          : "N/A"}
+                      </td>
                       <td>{sale.quantity}</td>
                       <td>${sale.price.toFixed(2)}</td>
                       <td>${(sale.price * sale.quantity).toFixed(2)}</td>
-                      <td>{new Date(sale.purchaseDate).toLocaleDateString()}</td>
+                      <td>
+                        {new Date(sale.purchaseDate).toLocaleDateString()}
+                      </td>
                     </tr>
                   );
                 })}

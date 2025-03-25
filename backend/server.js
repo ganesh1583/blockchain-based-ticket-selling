@@ -18,7 +18,7 @@ const { ticketsRouter } = require("./routes/ticketsRouter");
 const { transactionsRouter} = require("./routes/transactionsRouter")
 
 app.use("/api/users", usersRouter);
-app.use("/api/concerts", concertsRouter);
+app.use("/api/events", concertsRouter);
 app.use("/api/tickets", ticketsRouter)
 app.use("/api/transactions", transactionsRouter)
 

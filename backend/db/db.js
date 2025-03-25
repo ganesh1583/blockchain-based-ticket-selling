@@ -16,17 +16,11 @@ const eventSchema = new Schema({
     event_name: { type: String, required: true },
     description: { type: String, required: true },
     event_date: { type: Date, required: true },
-    duration: { type: Number },
+    duration: { type: String },
     total_tickets: { type: Number, required: true },
     ticket_price: { type: Number, required: true },
     wallet_address: { type: String, required: true },
-    venue: {  
-        building: { type: String, required: true },
-        area: { type: String, required: true },
-        city: { type: String, required: true },
-        state: { type: String, required: true },
-        pincode: { type: String, required: true }
-    },
+    address: { type: String, required: true},
     created_at: { type: Date, default: Date.now }
 });
 

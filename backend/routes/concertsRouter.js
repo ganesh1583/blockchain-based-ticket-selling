@@ -4,28 +4,25 @@ const { userMiddleware } = require("../middlewares/userMiddleware");
 const concertsRouter = Router();
 
 //there are some errors in here, will fix tomorrow
-
+async function getEventId() {
+  const maxEvent = await eventModel.findOne().sort({ event_id: -1 }).limit(1);
+  const maxEventId = maxEvent ? maxEvent.user_id : 0; // Default to 0 if no users exist
+  return maxEventId + 1;
+}
 // Create a new concert (requires authentication)
-concertsRouter.post("/create", async (req, res, next) => {
+concertsRouter.post("/create", userMiddleware, async (req, res, next) => {
   try {
     const {
-      event_id,
       event_name,
       description,
       event_date,
       duration,
       total_tickets,
       ticket_price,
-      wallet_address,
-      building,
-      area,
-      city,
-      state,
-      pincode,
+      address
     } = req.body;
 
     if (
-      !event_id ||
       !event_name ||
       !event_date ||
       !duration ||
@@ -35,21 +32,15 @@ concertsRouter.post("/create", async (req, res, next) => {
       return res.status(404).json({ error: "Missing required fields" });
     }
     const newEvent = await eventModel.create({
-      event_id,
+      event_id: await getEventId(),
       event_name,
       description,
       event_date,
       duration,
       total_tickets,
       ticket_price,
-      wallet_address,
-      venue: {
-        building,
-        area,
-        city,
-        state,
-        pincode,
-      },
+      wallet_address: req.walletAddress,
+      address
     });
     res
       .status(201)

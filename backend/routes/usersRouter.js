@@ -1,7 +1,6 @@
 const { Router } = require("express");
 const { userModel, nonceModel } = require("../db/db");
-const { jwt } = require("jsonwebtoken");
-const { v4: uuidv4 } = require("uuid");
+const jwt = require('jsonwebtoken');
 const { ethers } = require("ethers");
 const { utils } = require("ethers");
 
@@ -20,18 +19,21 @@ usersRouter.post("/signup", async (req, res, next) => {
   const { username, walletAddress, signature } = req.body;
 
   if (!username || !walletAddress || !signature) {
-    return res.status(400).json({ error: "Username, wallet address, and signature are required" });
+    return res
+      .status(400)
+      .json({ error: "Username, wallet address, and signature are required" });
   }
 
   try {
-
     // Fetch nonce value for the provided wallet address
     const nonce_val = await nonceModel.findOne({
       wallet_address: walletAddress,
     });
 
     if (!nonce_val || !nonce_val.nonce_value) {
-      return res.status(400).json({ error: "Nonce not found for this wallet address" });
+      return res
+        .status(400)
+        .json({ error: "Nonce not found for this wallet address" });
     }
 
     const nonce = nonce_val.nonce_value;
@@ -41,7 +43,9 @@ usersRouter.post("/signup", async (req, res, next) => {
     const recoveredAddress = ethers.verifyMessage(nonce.toString(), signature);
 
     if (recoveredAddress.toLowerCase() !== walletAddress.toLowerCase()) {
-      return res.status(401).json({ error: "Invalid signature! Could not sign you up" });
+      return res
+        .status(401)
+        .json({ error: "Invalid signature! Could not sign you up" });
     }
 
     // Check if the user already exists
@@ -75,37 +79,47 @@ usersRouter.post("/signup", async (req, res, next) => {
   }
 });
 
-
-
 usersRouter.post("/signin", async (req, res, next) => {
   const { walletAddress, signature } = req.body;
+
+  // Find the nonce for the wallet address
   const nonce_val = await nonceModel.findOne({
     wallet_address: walletAddress,
   });
 
-  if (!nonce_val) return res.status(400).json({ error: "Nonce not found" });
-  const nonce = nonce_val.nonce_value;
+  // Delete the nonce from the database to prevent replay attacks
+  await nonceModel.deleteOne({
+    wallet_address: walletAddress,
+  });
 
-  if (!nonce) return res.status(400).json({ error: "Nonce not found" });
+  // Check if the nonce exists
+  if (!nonce_val) {
+    return res.status(400).json({ error: "Nonce not found" });
+  }
+
+  const nonce = nonce_val.nonce_value;
+  console.log("Nonce value: " + nonce);
 
   try {
-    const recoveredAddress = ethers.verifyMessage(nonce, signature);
+    // Verify the signature with the nonce
+    const recoveredAddress = ethers.verifyMessage(nonce.toString(), signature);
     if (recoveredAddress.toLowerCase() !== walletAddress.toLowerCase()) {
       return res.status(401).json({ error: "Invalid signature" });
     }
 
-    const token = jwt.sign({ walletAddress }, process.env.JWT_SECRET, {
-      expiresIn: "1h",
-    });
+    // Generate a JWT token if the signature is valid
+    const token = jwt.sign(
+      { walletAddress: walletAddress },
+      process.env.JWT_SECRET,
+      { expiresIn: "1h" } // Set an expiry time for the token (optional)
+    );
 
-    await nonceModel.deleteOne({
-      wallet_address: walletAddress,
-    });
-
+    // Return the token in the response
     res.json({
       token: token,
     });
   } catch (error) {
+    console.error("Error during signin:", error);
     res.status(401).json({ error: "Authentication failed" });
   }
 });
@@ -116,7 +130,7 @@ usersRouter.post("/logout", (req, res) => {
 
 usersRouter.post("/getuser", async (req, res, next) => {
   try {
-    const { wallet_address } = req.body;  // Get wallet_address from the body
+    const { wallet_address } = req.body; // Get wallet_address from the body
     if (!wallet_address) {
       return res.status(400).json({ error: "Wallet address required" });
     }
@@ -128,14 +142,16 @@ usersRouter.post("/getuser", async (req, res, next) => {
 
     // If no user is found, return a 404 error
     if (!userData) {
-      return res.status(404).json(null);  // Returning null in case user is not found
+      return res.status(404).json(null); // Returning null in case user is not found
     }
 
     // Send back the user data
     res.json({ userData });
   } catch (error) {
     // Handle any server errors
-    res.status(500).json({ error: "Internal server error.", description: error.message });
+    res
+      .status(500)
+      .json({ error: "Internal server error.", description: error.message });
   }
 });
 

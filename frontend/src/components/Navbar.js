@@ -8,6 +8,7 @@ const Navbar = () => {
   const { user, connectWallet, disconnectWallet } = useAuth();
   const location = useLocation();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [walletAddress, setWalletAddress] = useState('')
 
   const toggleMobileMenu = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen);
@@ -30,8 +31,44 @@ const Navbar = () => {
     closeMobileMenu();
   };
 
-  const getSignupHandller = async () => {
-    
+  const connectWalletHandller = async () => {
+    if(!window.ethereum){
+      alert("Metamask not installed. Please install it!");
+      return;
+    }
+    try{
+      const provider = new ethers.BrowserProvider(window.ethereum);
+      const signer = await provider.getSigner();
+      const account = await signer.getAddress();
+      
+      // Fetch the nonce from the server
+      const nonceResponse = await fetch("http://localhost:5000/api/users/nonce", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ wallet_address: account }),
+      });
+      const {nonce} = await nonceResponse.json();
+
+      const signature = await signer.signMessage(nonce);
+
+      const verifyResponse = await fetch("http://localhost:5000/api/users/signin", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ walletAddress: account, signature }),
+      });
+      const { token } = await verifyResponse.json();
+
+      localStorage.setItem("authToken", token);
+      setWalletAddress(account)
+      alert("Login successful!");
+      
+    }catch(error){
+      console.error(error)
+    }
+  }
+  const disconnectWalletHandller = () => {
+    setWalletAddress('');
+    localStorage.removeItem("authToken")
   }
   return (
     <nav className="navbar">
@@ -75,7 +112,7 @@ const Navbar = () => {
             Organizer
           </Link>
 
-          {user ? (
+          {walletAddress ? (
             <>
               <div className="wallet-address">
                 <span>Connected: </span>
@@ -87,7 +124,7 @@ const Navbar = () => {
               </div>
               <button
                 className="disconnect-wallet-btn"
-                onClick={disconnectWallet}
+                onClick={disconnectWalletHandller}
               >
                 Disconnect
               </button>
@@ -95,19 +132,19 @@ const Navbar = () => {
           ) : (
             <button
               className="wallet-button"
-              onClick={handleWalletAction}
+              onClick={connectWalletHandller}
               disabled={false}
             >
               Connect Wallet
             </button>
-          )}
+          )}{!walletAddress && 
           <button
               className="wallet-button"
-              onClick={()=>{window.location.href = '/register';}}
+              onClick={()=>{ window.location.href = '/register';}}
               disabled={false}
             >
               Sign Up
-            </button>
+            </button>}
         </div>
       </div>
     </nav>
