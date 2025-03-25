@@ -15,6 +15,7 @@ usersRouter.post("/signup", async (req, res, next) => {
   });
 
   const nonce = nonce_val.nonce_value;
+  console.log(nonce);
   if (!nonce) return res.status(400).json({ error: "Nonce not found" });
 
   try {
