@@ -1,6 +1,6 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import { BrowserProvider, JsonRpcProvider } from 'ethers';
-
+import React, { createContext, useContext, useState, useEffect } from "react";
+import { BrowserProvider, JsonRpcProvider } from "ethers";
+import { ethers } from "ethers";
 const AuthContext = createContext();
 
 // Add the RPC URL definition here
@@ -14,7 +14,7 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-
+  const [ walletAddress, setWalletAddress] = useState('')
   useEffect(() => {
     checkWalletConnection();
   }, []);
@@ -25,70 +25,64 @@ export const AuthProvider = ({ children }) => {
       if (window.ethereum) {
         const provider = new BrowserProvider(window.ethereum);
         const accounts = await provider.listAccounts();
-        
+
         if (accounts.length > 0) {
           // Make sure we have a valid address and convert it to string
           const address = accounts[0] ? accounts[0].address : null;
           if (address) {
             setUser({
               walletAddress: address,
-              provider: provider
+              provider: provider,
             });
           }
         }
       }
     } catch (err) {
-      console.error('Error checking wallet connection:', err);
-      setError('Failed to check wallet connection');
+      console.error("Error checking wallet connection:", err);
+      setError("Failed to check wallet connection");
     } finally {
       setLoading(false);
     }
   };
 
   const connectWallet = async () => {
+    if (!window.ethereum) {
+      throw new Error("Please install MetaMask to use this application");
+    }
     try {
-      if (!window.ethereum) {
-        throw new Error('Please install MetaMask to use this application');
+      const provider = new ethers.BrowserProvider(window.ethereum);
+      const signer = await provider.getSigner();
+      const address = await signer.getAddress();
+      setWalletAddress(address);
+
+      const response = await fetch("http://localhost:5000/api/users/nonce", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ wallet_address: address }),
+      });
+      const { nonce } = await response.json();
+
+      // Ask user to sign the message
+      const signature = await signer.signMessage(nonce);
+
+      // Send signed message to backend for verification
+      const verifyResponse = await fetch(
+        "http://localhost:5000/api/users/signin",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ walletAddress: address, signature }),
+        }
+      );
+
+      const data = await verifyResponse.json();
+
+      if (verifyResponse.ok) {
+        localStorage.setItem("authToken", data.token);
+        alert("Login successful!");
       }
-
-      const provider = new BrowserProvider(window.ethereum);
-      
-      // Request accounts access
-      await window.ethereum.request({ method: 'eth_requestAccounts' });
-      const accounts = await provider.listAccounts();
-      
-      if (accounts.length > 0) {
-        // Make sure we have a valid address and convert it to string
-        const address = accounts[0] ? accounts[0].address : null;
-
-
-        fetch(`http://localhost:5000/api/users/${address}`)
-        .then((response) => response.json()) // Convert response to JSON
-        .then((data) => {
-          if (data === null) {
-            alert("Go for registration.");
-            window.location.href = '/register';
-          } else {
-            if (address) {
-              setUser({
-                walletAddress: address,
-                provider: provider
-              });
-              return address; // Return the address for convenience
-            }
-          }
-        })
-        .catch((error) => {
-          // Handle any errors
-          console.error("Error occurred while fetching:", error);
-        });
-
-      }
-      throw new Error('No accounts found');
-    } catch (err) {
-      console.error('Error connecting wallet:', err);
-      setError('Failed to connect wallet');
-      throw err;
+    } catch (error) {
+      console.error(error);
     }
   };
 
@@ -96,8 +90,8 @@ export const AuthProvider = ({ children }) => {
     try {
       setUser(null);
     } catch (err) {
-      console.error('Error disconnecting wallet:', err);
-      setError('Failed to disconnect wallet');
+      console.error("Error disconnecting wallet:", err);
+      setError("Failed to disconnect wallet");
       throw err;
     }
   };
@@ -107,7 +101,7 @@ export const AuthProvider = ({ children }) => {
     loading,
     error,
     connectWallet,
-    disconnectWallet
+    disconnectWallet,
   };
 
   return (

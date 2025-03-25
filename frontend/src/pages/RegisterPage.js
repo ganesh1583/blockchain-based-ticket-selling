@@ -1,128 +1,111 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
-import { register, isAuthenticated } from '../services/authService';
+import React, { useEffect, useState } from "react";
+import { ethers, BrowserProvider } from "ethers";
 
 const RegisterPage = () => {
-  const [userName, setUserName] = useState('');
-  const [isRegistering, setIsRegistering] = useState(false);
-  const [error, setError] = useState('');
-  const navigate = useNavigate();
-  const location = useLocation();
-  const walletAddress = location.state?.walletAddress || '';
+  const [name, setName] = useState("");
+  const [walletAddress, setWalletAddress] = useState("");
+  const [signer, setSigner] = useState(null);
 
-  // useEffect(() => {
-  //   // Check if user is already authenticated
-  //   if (isAuthenticated()) {
-  //     navigate('/events');
-  //   }
-    
-  //   // Check if wallet address is provided
-  //   if (!walletAddress) {
-  //     navigate('/');
-  //   }
-  // }, [navigate, walletAddress]);
-
-  const handleRegister = async (e) => {
-    e.preventDefault();
-  
-    if (!userName.trim()) {
-      setError('Username is required');
-      return;
-    }
-  
-    setIsRegistering(true);
-    setError('');
-  
+  const connectWallet = async () => {
+    // e.prevenDefault();
     try {
-      // Generate a signature with the wallet address
       if (!window.ethereum) {
-        throw new Error('MetaMask is not installed');
+        alert("Metamask not installed. Please install it!");
+        return;
       }
-  
-      const provider = new BrowserProvider(window.ethereum);
-      
-      // Request accounts access
-      const accounts = await provider.listAccounts();
-      if (accounts.length === 0) {
-        throw new Error('No accounts found');
-      }
-  
-      const address = accounts[0] ? accounts[0].address : null;
-      
-      const message = '';
-      fetch(`http://localhost:5000/api/users/nonce/${address}`)
-      .then((response) => response.json()) // Convert response to JSON
-      .then((data) => {
-        message = data.nonce;
-      }).catch((error) => {
-        // Handle any errors
-        console.error("Error occurred while fetching:", error);
-      });
+      const provider = new ethers.BrowserProvider(window.ethereum);
+      const signer = await provider.getSigner();
+      const address = await signer.getAddress();
+      setSigner(signer);
+      setWalletAddress(address);
 
-      const signature = await window.ethereum.request({
-        method: 'personal_sign',
-        params: [message, address]
+    } catch (error) {
+      console.error(error);
+    }
+  };
+  useEffect(() => {
+    if (window.ethereum) {
+      window.ethereum.on("accountsChanged", (accounts) => {
+        setWalletAddress(accounts[0] || null);
       });
+    }
+  }, []);
+
+  const onSubmitHandller = async (e) => {
+    e.preventDefault();
+    
+    try {
+      // Initialize the provider and signer
+      const provider = new ethers.BrowserProvider(window.ethereum);
+      const signer = await provider.getSigner();
+      const address = await signer.getAddress();
   
-      // Now call the backend API to register the user
-      const response = await fetch('http://localhost:5000/api/users/signup', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+      // Fetch the nonce from the server
+      const nonceResponse = await fetch("http://localhost:5000/api/users/nonce", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ wallet_address: address }),
+      });
+      console.log(nonceResponse)
+      // Check if the nonce response is successful
+      if (!nonceResponse.ok) {
+        throw new Error("Failed to fetch nonce");
+      }
+  
+      const { nonce } = await nonceResponse.json();
+      console.log("Nonce received:", nonce);
+  
+      // Ensure nonce is valid
+      if (!nonce) {
+        throw new Error("Invalid nonce received");
+      }
+  
+      // Sign the message with the nonce
+      const signature = await signer.signMessage(nonce.toString());
+  
+      // Send the signup request with the signature
+      const response = await fetch("http://localhost:5000/api/users/signup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          wallet_address: address,
-          user_name: userName,
+          username: name,
+          walletAddress: address,
           signature: signature,
         }),
       });
   
-      const data = await response.json();
-  
+      // Handle the signup response
       if (!response.ok) {
-        throw new Error(data.error || 'Registration failed');
+        throw new Error("Signup failed");
       }
   
-      // On success, navigate to the events page
-      navigate('/events');
-    } catch (err) {
-      setError('Registration failed: ' + (err.message || 'Unknown error'));
-    } finally {
-      setIsRegistering(false);
+      const data = await response.json();
+      console.log(data);
+      window.location.href = '/';
+    } catch (error) {
+      console.error("Error in onSubmitHandler:", error);
+      alert("An error occurred: " + error.message);
     }
   };
   return (
-    <div className="register-container">
-      <h2>Create Your Account</h2>
-      
-      <div className="wallet-info">
-        <p>Wallet Address: {walletAddress.substring(0, 6)}...{walletAddress.substring(walletAddress.length - 4)}</p>
-      </div>
-      
-      <form onSubmit={handleRegister} className="register-form">
-        <div className="form-group">
-          <label htmlFor="userName">Username</label>
-          <input
-            type="text"
-            id="userName"
-            value={userName}
-            onChange={(e) => setUserName(e.target.value)}
-            placeholder="Enter your username"
-            required
-          />
-        </div>
-        
-        <button 
-          type="submit" 
-          disabled={isRegistering}
-          className="register-btn"
-        >
-          {isRegistering ? 'Creating Account...' : 'Create Account'}
-        </button>
+    <>
+      <form onSubmit={onSubmitHandller}>
+        <p>Enter your name: </p>
+        <input
+          type="text"
+          placeholder="name"
+          onChange={(e) => {
+            setName(e.target.value);
+          }}
+        />
+        {!walletAddress ? (
+          <button onClick={connectWallet}>Connect Wallet</button>
+        ) : (
+          <button disabled>{walletAddress.slice(0, 7)}...</button>
+        )}
+        <button type="submit">Submit</button>
       </form>
-      
-      {error && <div className="error-message">{error}</div>}
-    </div>
+    </>
   );
 };
 

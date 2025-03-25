@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import './Navbar.css';
+import { ethers } from 'ethers';
 
 const Navbar = () => {
   const { user, connectWallet, disconnectWallet } = useAuth();
@@ -29,6 +30,9 @@ const Navbar = () => {
     closeMobileMenu();
   };
 
+  const getSignupHandller = async () => {
+    
+  }
   return (
     <nav className="navbar">
       <div className="navbar-container">
@@ -97,6 +101,13 @@ const Navbar = () => {
               Connect Wallet
             </button>
           )}
+          <button
+              className="wallet-button"
+              onClick={()=>{window.location.href = '/register';}}
+              disabled={false}
+            >
+              Sign Up
+            </button>
         </div>
       </div>
     </nav>

@@ -3,47 +3,79 @@ const { userModel, nonceModel } = require("../db/db");
 const { jwt } = require("jsonwebtoken");
 const { v4: uuidv4 } = require("uuid");
 const { ethers } = require("ethers");
+const { utils } = require("ethers");
+
 const dotenv = require("dotenv");
 dotenv.config();
 
 const usersRouter = Router();
 
+async function getUserId() {
+  const maxUser = await userModel.findOne().sort({ user_id: -1 }).limit(1);
+  const maxUserId = maxUser ? maxUser.user_id : 0; // Default to 0 if no users exist
+  return maxUserId + 1;
+}
+
 usersRouter.post("/signup", async (req, res, next) => {
   const { username, walletAddress, signature } = req.body;
-  const nonce_val = await nonceModel.findOne({
-    wallet_address: walletAddress,
-  });
 
-  const nonce = nonce_val.nonce_value;
-  console.log(nonce);
-  if (!nonce) return res.status(400).json({ error: "Nonce not found" });
+  if (!username || !walletAddress || !signature) {
+    return res.status(400).json({ error: "Username, wallet address, and signature are required" });
+  }
 
   try {
-    const recoveredAddress = ethers.verifyMessage(nonce, signature);
+
+    // Fetch nonce value for the provided wallet address
+    const nonce_val = await nonceModel.findOne({
+      wallet_address: walletAddress,
+    });
+
+    if (!nonce_val || !nonce_val.nonce_value) {
+      return res.status(400).json({ error: "Nonce not found for this wallet address" });
+    }
+
+    const nonce = nonce_val.nonce_value;
+    console.log("Nonce:", nonce);
+
+    // Verify the signature using ethers.js
+    const recoveredAddress = ethers.verifyMessage(nonce.toString(), signature);
 
     if (recoveredAddress.toLowerCase() !== walletAddress.toLowerCase()) {
-      return res
-        .status(401)
-        .json({ error: "Invalid signature! Could not sign you up" });
+      return res.status(401).json({ error: "Invalid signature! Could not sign you up" });
     }
-    // res.json({message: "created"});
+
+    // Check if the user already exists
+    const existingUser = await userModel.findOne({
+      wallet_address: walletAddress,
+    });
+
+    if (existingUser) {
+      return res.status(400).json({ error: "User already exists" });
+    }
+    const userId = await getUserId();
+    // Create a new user
     await userModel.create({
-        user_id: 1,
+      user_id: userId,
       username: username,
       wallet_address: walletAddress,
     });
 
+    // Delete the nonce after successful signup
     await nonceModel.deleteOne({
       wallet_address: walletAddress,
     });
 
-    res.json({
-      message: "You are signed up"
+    // Respond with success
+    res.status(201).json({
+      message: "You are signed up successfully",
     });
   } catch (error) {
-    res.status(401).json({ error: "Authentication failed" });
+    console.error("Error during signup:", error);
+    // res.status(500).json({ error: "Internal server error during signup", description: error.message });
   }
 });
+
+
 
 usersRouter.post("/signin", async (req, res, next) => {
   const { walletAddress, signature } = req.body;
@@ -82,25 +114,28 @@ usersRouter.post("/logout", (req, res) => {
   res.json({ message: "Logged out successfully" });
 });
 
-usersRouter.get("/:wallet_address", async (req, res, next) => {
+usersRouter.post("/getuser", async (req, res, next) => {
   try {
-    const { wallet_address } = req.params;
-    if (!wallet_address)
+    const { wallet_address } = req.body;  // Get wallet_address from the body
+    if (!wallet_address) {
       return res.status(400).json({ error: "Wallet address required" });
+    }
 
+    // Search for the user by wallet address
     const userData = await userModel.findOne({
       wallet_address: wallet_address,
     });
 
+    // If no user is found, return a 404 error
     if (!userData) {
-      return res.status(404).json(null); // Return null if no user is found
+      return res.status(404).json(null);  // Returning null in case user is not found
     }
 
+    // Send back the user data
     res.json({ userData });
   } catch (error) {
-    res
-      .status(500)
-      .json({ error: "Internal server error.", description: error.message });
+    // Handle any server errors
+    res.status(500).json({ error: "Internal server error.", description: error.message });
   }
 });
 

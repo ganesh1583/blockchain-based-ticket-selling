@@ -5,7 +5,7 @@ const ObjectId = mongoose.ObjectId;
 
 const userSchema = new Schema({
     user_id: { type: Number, unique: true, required: true },
-    username: { type: String, unique: true, required: true },
+    username: { type: String, required: true },
     wallet_address: { type: String, unique: true, required: true },
     created_at: { type: Date, default: Date.now }
 });
@@ -49,7 +49,7 @@ const transactionSchema = new Schema({
 });
 
 const nonceSchema = new Schema({
-    wallet_address: { type: String, unique: true, required: true },
+    wallet_address: { type: String, required: true },
     nonce_value: { type: Number, required: true }
 });
 
