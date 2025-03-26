@@ -1,18 +1,33 @@
 const { Router } = require("express");
-const { ticketModel } = require("../db/db");
-const userMiddleware = require("../middlewares/userMiddleware");
-
+const { ticketModel, userModel } = require("../db/db");
+const {userMiddleware} = require("../middlewares/userMiddleware");
+const uploadJsonToPinata = require("../comman_functions/upload")
 const ticketsRouter = Router();
 
-// Buy a ticket (wallet address required, triggers NFT minting)
-ticketsRouter.post("/buy", userMiddleware, async (req, res, next) => {
-  try {
-    const { ticket_id, event_id, wallet_address, token_id } = req.body;
+async function getTicketId() {
+  const maxUser = await ticketModel.findOne().sort({ ticket_id: -1 }).limit(1);
+  const maxUserId = maxUser ? ticketModel.ticket_id : 0; // Default to 0 if no users exist
+  return maxUserId + 1;
+}
 
+
+// Buy a ticket (wallet address required, triggers NFT minting)
+ticketsRouter.post("/buy", userMiddleware,async (req, res, next) => {
+  try {
+    const { event_id } = req.body;
+    const ticket_id = getTicketId();
+    const walletAddress = req.walletAddress;
     // Check if all required fields are provided
-    if (!ticket_id || !event_id || !wallet_address || !token_id) {
-      return res.status(400).json({ message: "Please provide all required fields!" });
-    }
+    // if (!ticket_id || !event_id || !walletAddress) {
+    //   return res.status(400).json({ message: "Please provide all required fields!" });
+    // }
+    
+    const userData = await userModel.find({
+      wallet_address: walletAddress
+    })
+    const userId = userData.user_id;
+    const CID = await uploadJsonToPinata({ticket_id, event_id, userId});
+
 
     // Optionally check for duplicates (if necessary)
     const existingTicket = await ticketModel.findOne({ ticket_id });
@@ -24,12 +39,12 @@ ticketsRouter.post("/buy", userMiddleware, async (req, res, next) => {
     const newTicket = await ticketModel.create({
       ticket_id,
       event_id,
-      wallet_address,
-      token_id,
+      wallet_address: walletAddress,
+      // token_id,
     });
 
     // Return success response
-    res.status(200).json({ message: "Ticket generated successfully!", newTicket });
+    res.status(200).json({ message: "Ticket generated successfully!", newTicket, CID });
   } catch (error) {
     console.error("Error creating ticket:", error);
     // Pass error to the error handler middleware (for centralized error handling)
