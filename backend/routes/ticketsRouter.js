@@ -1,6 +1,6 @@
 const { Router } = require("express");
 const { ticketModel } = require("../db/db");
-const userMiddleware = require("../middlewares/userMiddleware");
+const { userMiddleware } = require("../middlewares/userMiddleware");
 
 const ticketsRouter = Router();
 
