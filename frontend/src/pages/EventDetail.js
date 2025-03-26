@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext'; // Add this import
 import './EventDetail.css';
+import axios from 'axios';
 
 const EventDetail = () => {
   const { id } = useParams();
@@ -81,6 +82,22 @@ const EventDetail = () => {
   const handleConfirmPurchase = async () => {
     setPurchaseProcessing(true);
     try {
+
+      const response = await axios.post("http://localhost:5000/api/tickets/buy", {
+        event_id: event.id
+      },{
+        headers: { "Content-Type": "application/json" , token: localStorage.getItem("token")},
+      }
+      );
+  
+      // Handle the signup response
+      // if (!response.ok) {
+      //   throw new Error("Signup failed");
+      // }
+  
+      const data = response.data;
+      console.log(data)
+
       // Check for connected wallet with improved detection
       const connectedWallet = localStorage.getItem('walletAddress') || localStorage.getItem('connectedWallet');
       
@@ -103,7 +120,7 @@ const EventDetail = () => {
       const events = JSON.parse(localStorage.getItem('events') || '[]');
       const tickets = JSON.parse(localStorage.getItem('tickets') || '[]');
 
-      // Update event's available tickets
+      // // Update event's available tickets
       const updatedEvents = events.map(e => {
         if (e.id === event.id) {
           return {
