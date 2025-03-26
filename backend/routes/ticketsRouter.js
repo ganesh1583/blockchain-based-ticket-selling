@@ -4,6 +4,8 @@ const {userMiddleware} = require("../middlewares/userMiddleware");
 const uploadJsonToPinata = require("../comman_functions/upload")
 const ticketsRouter = Router();
 
+// const { mintNFT } = require("../../blockchain/scripts/mint-nft");
+
 async function getTicketId() {
   const maxUser = await ticketModel.findOne().sort({ ticket_id: -1 }).limit(1);
   const maxUserId = maxUser ? maxUser.ticket_id : 0; // Corrected to maxUser.ticket_id
@@ -30,6 +32,8 @@ ticketsRouter.post("/buy", userMiddleware, async (req, res, next) => {
     
     // Upload the JSON to Pinata and get the CID
     const CID = await uploadJsonToPinata({ ticket_id, event_id, userId });
+
+    // const txHash = await mintNFT(walletAddress, CID);
 
     // Create the ticket in the database
     const newTicket = await ticketModel.create({
