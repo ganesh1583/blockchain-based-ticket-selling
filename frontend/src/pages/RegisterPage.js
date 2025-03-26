@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { ethers, BrowserProvider } from "ethers";
+import "./RegisterPage.css";
 
 const RegisterPage = () => {
   const [name, setName] = useState("");
@@ -88,24 +89,51 @@ const RegisterPage = () => {
     }
   };
   return (
-    <>
-      <form onSubmit={onSubmitHandller}>
-        <p>Enter your name: </p>
-        <input
-          type="text"
-          placeholder="name"
-          onChange={(e) => {
-            setName(e.target.value);
-          }}
-        />
+    <div className="register-container">
+      <h2 className="register-title">Create Your Account</h2>
+      <form className="register-form" onSubmit={onSubmitHandller}>
+        <div className="form-group">
+          <label htmlFor="name">Your Name</label>
+          <input
+            id="name"
+            type="text"
+            placeholder="Enter your name"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            required
+          />
+        </div>  
         {!walletAddress ? (
-          <button onClick={connectWallet}>Connect Wallet</button>
+              <button 
+              type="button" 
+              className="wallet-button" 
+              onClick={connectWallet}
+            >
+              Connect Wallet
+            </button>
         ) : (
-          <button disabled>{walletAddress.slice(0, 7)}...</button>
+          <div>
+            <button 
+              type="button" 
+              className="wallet-button" 
+              disabled
+            >
+              Wallet Connected
+            </button>
+            <div className="wallet-address">
+              {walletAddress.slice(0, 6)}...{walletAddress.slice(-4)}
+            </div>
+          </div>
         )}
-        <button type="submit">Submit</button>
+         <button 
+          type="submit" 
+          className="submit-button" 
+          disabled={!name || !walletAddress}
+        >
+          Register Account
+        </button>
       </form>
-    </>
+      </div>
   );
 };
 

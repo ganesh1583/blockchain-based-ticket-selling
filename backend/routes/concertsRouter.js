@@ -53,14 +53,10 @@ concertsRouter.post("/create", userMiddleware, async (req, res, next) => {
   }
 });
 
-concertsRouter.get("/demo", userMiddleware, async (req, res, next) => {
-  res.status(200).json({message: "demo api called"})
-});
-
 // Fetch concerts created by the logged-in host
-concertsRouter.get("/:wallet_address", async (req, res, next) => {
+concertsRouter.get("/orgEvents", userMiddleware, async (req, res, next) => {
   try {
-    const wallet_address = req.params.wallet_address;
+    const wallet_address = req.walletAddress;
     const eventData = await eventModel.find({
       wallet_address: wallet_address,
     });
@@ -116,6 +112,20 @@ concertsRouter.delete("/:event_id", async (req, res, next) => {
 concertsRouter.get("/", async (req, res, next) => {
   try {
     const eventsData = await eventModel.find();
+    if (!eventsData) res.status(404).json({ message: "No event found!" });
+    res.status(200).json(eventsData);
+  } catch (error) {
+    res
+      .status(500)
+      .json({ error: "Internal server error!", details: error.message });
+  }
+});
+
+concertsRouter.get("/byId/:event_id", async (req, res, next) => {
+  try {
+    const eventsData = await eventModel.find({
+      event_id: req.params.event_id
+    });
     if (!eventsData) res.status(404).json({ message: "No event found!" });
     res.status(200).json(eventsData);
   } catch (error) {

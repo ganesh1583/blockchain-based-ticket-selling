@@ -17,15 +17,42 @@ const EventDetail = () => {
   useEffect(() => {
     const fetchEvent = async () => {
       try {
-        const events = JSON.parse(localStorage.getItem('events') || '[]');
-        console.log('Fetched events:', events);
-        console.log('Looking for event with ID:', id);
-        // Convert both IDs to strings for comparison
-        const foundEvent = events.find(e => String(e.id) === String(id));
-        console.log('Found event:', foundEvent);
-        
+        setLoading(true);
+
+        // API call to fetch event by event_id
+        const response = await fetch(`http://localhost:5000/api/events/byId/${id}`, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            "token": localStorage.getItem("authToken"),  // Make sure to pass the token
+          },
+        });
+
+        // Check if the response is successful
+        if (!response.ok) {
+          throw new Error('Failed to fetch event');
+        }
+
+        const data = await response.json();
+        console.log(data[0])
+
+        // Assuming the API returns a single event object, not an array
+        const foundEvent = data[0];  // Assuming the event data is in eventData property
+
         if (foundEvent) {
-          setEvent(foundEvent);
+          // Set the event data directly from the API response
+          setEvent({
+            id: foundEvent.event_id,
+            title: foundEvent.event_name,
+            date: foundEvent.event_date,
+            time: foundEvent.duration,
+            price: foundEvent.ticket_price,
+            availableTickets: foundEvent.total_tickets,
+            description: foundEvent.description,
+            address: foundEvent.address,
+            walletAddress: foundEvent.wallet_address,
+            createdAt: foundEvent.created_at,
+          });
         } else {
           setError('Event not found');
         }
@@ -38,7 +65,7 @@ const EventDetail = () => {
     };
 
     fetchEvent();
-  }, [id]);
+  }, [id]);  // Dependency array with id to re-run if id changes
 
   const handleQuantityChange = (e) => {
     const value = parseInt(e.target.value);

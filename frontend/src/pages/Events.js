@@ -17,15 +17,60 @@ const Events = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const fetchEvents = () => {
+    const fetchEvents = async() => {
       try {
-        const storedEvents = localStorage.getItem('events');
-        if (storedEvents) {
-          const parsedEvents = JSON.parse(storedEvents);
-          setEvents(parsedEvents);
-          setFilteredEvents(parsedEvents);
+        const response = await fetch("http://localhost:5000/api/events/", {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+          }
+        });
+
+        // Check if the response is successful
+        if (!response.ok) {
+          throw new Error("Failed to fetch events");
         }
-      } catch (err) {
+
+        const data = await response.json();
+        // console.log(data[0])     
+
+        // Assuming data.eventData contains the events
+        const eventData = data || [];
+
+        // Filter out unwanted properties for each event
+        const filteredEvents = eventData.map((event) => {
+          const {
+            event_id,
+            event_name,
+            event_date,
+            duration,
+            ticket_price,
+            total_tickets,
+            // Omit unwanted properties
+            address,
+            created_at,
+            wallet_address,
+            __v,
+            _id,
+            ...rest
+          } = event;
+
+          // Return only the relevant properties
+          return {
+            event_id: event_id,
+            title: event_name,
+            date: event_date,
+            time: duration,
+            price: ticket_price,
+            availableTickets: total_tickets,
+            description: rest.description, // Include description or other necessary fields
+            // You can include other properties from `rest` if needed
+          };
+        });
+
+        // Set the filtered events to state
+        setEvents(filteredEvents);
+        setFilteredEvents(filteredEvents);      } catch (err) {
         setError('Failed to load events');
       } finally {
         setLoading(false);
@@ -107,8 +152,9 @@ const Events = () => {
     }));
   };
 
-  const handleViewEvent = (eventId) => {
-    navigate(`/events/${eventId}`);
+  const handleViewEvent = (id) => {
+    console.log(id)
+    navigate(`/events/${id}`);
   };
 
   if (loading) {
@@ -210,7 +256,7 @@ const Events = () => {
                   <span>${event.price}</span>
                   <button 
                     className="view-event-btn"
-                    onClick={() => handleViewEvent(event.id)}
+                    onClick={() => {handleViewEvent(event.event_id)}}
                   >
                     View Event
                   </button>

@@ -29,13 +29,58 @@ const OrganizerDashboard = () => {
       try {
         setLoading(true);
 
-        // Get events from localStorage
+        const token = localStorage.getItem("token"); // Retrieve the token from localStorage
+
+        const response = await fetch(
+          "http://localhost:5000/api/events/orgEvents",
+          {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+              token: token, // Pass the token in the headers
+            },
+          }
+        );
+
+        const data = await response.json();
+        console.log(data.eventData[0]);
+        const filteredEvents = data.eventData.map((event) => {
+          // Destructure and omit unwanted fields
+          const {
+            event_name,
+            event_date,
+            duration,
+            ticket_price,
+            total_tickets,
+            // Omit these fields
+            address,
+            created_at,
+            wallet_address,
+            __v,
+            _id,
+            ...rest // Spread the remaining properties
+          } = event;
+
+          // Return only the relevant data
+          return {
+            title: event_name,
+            date: event_date,
+            time: duration,
+            price: ticket_price,
+            availableTickets: total_tickets,
+            description: rest.description, // Include description if needed
+            // You can add any other necessary fields from `rest`
+          };
+        });
+
+        // Set the filtered events to the state
+        setEvents(filteredEvents);
+
+        // Get events from localStorage (if needed)
         const storedEvents = localStorage.getItem("events");
         if (storedEvents) {
           const parsedEvents = JSON.parse(storedEvents);
           setEvents(parsedEvents);
-        } else {
-          setEvents([]);
         }
 
         // Get ticket sales from localStorage
@@ -43,8 +88,6 @@ const OrganizerDashboard = () => {
         if (storedTickets) {
           const parsedTickets = JSON.parse(storedTickets);
           setTicketSales(parsedTickets);
-        } else {
-          setTicketSales([]);
         }
 
         setLoading(false);
@@ -62,7 +105,7 @@ const OrganizerDashboard = () => {
     e.preventDefault();
 
     const token = localStorage.getItem("token");
-    alert("Token : "+token);
+    // alert("Token : "+token);
     // Check if token is available
     if (!token) {
       alert("You must be logged in to create an event.");
@@ -70,27 +113,29 @@ const OrganizerDashboard = () => {
     }
 
     // try {
-      const eventResponse = await axios.post(
-        "http://localhost:5000/api/events/create",{
-          event_name: newEvent.title,
-          description: newEvent.description,
-          event_date: newEvent.date,
-          duration: newEvent.time,
-          total_tickets: newEvent.availableTickets,
-          ticket_price: newEvent.price,
-          address: newEvent.location,
-        },{
-            headers: {
-              token: token,
-            },
-        }
-      );
+    const eventResponse = await axios.post(
+      "http://localhost:5000/api/events/create",
+      {
+        event_name: newEvent.title,
+        description: newEvent.description,
+        event_date: newEvent.date,
+        duration: newEvent.time,
+        total_tickets: newEvent.availableTickets,
+        ticket_price: newEvent.price,
+        address: newEvent.location,
+      },
+      {
+        headers: {
+          token: token,
+        },
+      }
+    );
 
-      // Handle server response
-      // const responseData = await eventResponse.json();
-      // if(responseData.ok) {
-      //   alert("all okay");
-      // }
+    // Handle server response
+    // const responseData = await eventResponse.json();
+    // if(responseData.ok) {
+    //   alert("all okay");
+    // }
 
     // } catch (error) {
     //   console.error("Error creating event:", error);
