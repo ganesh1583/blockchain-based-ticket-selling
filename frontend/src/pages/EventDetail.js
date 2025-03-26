@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext'; // Add this import
-import './EventDetail.css';
-import axios from 'axios';
+import React, { useState, useEffect } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import { useAuth } from "../contexts/AuthContext"; // Add this import
+import "./EventDetail.css";
+import axios from "axios";
 
 const EventDetail = () => {
   const { id } = useParams();
@@ -21,24 +21,27 @@ const EventDetail = () => {
         setLoading(true);
 
         // API call to fetch event by event_id
-        const response = await fetch(`http://localhost:5000/api/events/byId/${id}`, {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            "token": localStorage.getItem("authToken"),  // Make sure to pass the token
-          },
-        });
+        const response = await fetch(
+          `http://localhost:5000/api/events/byId/${id}`,
+          {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+              token: localStorage.getItem("authToken"), // Make sure to pass the token
+            },
+          }
+        );
 
         // Check if the response is successful
         if (!response.ok) {
-          throw new Error('Failed to fetch event');
+          throw new Error("Failed to fetch event");
         }
 
         const data = await response.json();
-        console.log(data[0])
+        console.log(data[0]);
 
         // Assuming the API returns a single event object, not an array
-        const foundEvent = data[0];  // Assuming the event data is in eventData property
+        const foundEvent = data[0]; // Assuming the event data is in eventData property
 
         if (foundEvent) {
           // Set the event data directly from the API response
@@ -55,18 +58,18 @@ const EventDetail = () => {
             createdAt: foundEvent.created_at,
           });
         } else {
-          setError('Event not found');
+          setError("Event not found");
         }
       } catch (err) {
-        setError('Error loading event details');
-        console.error('Error fetching event:', err);
+        setError("Error loading event details");
+        console.error("Error fetching event:", err);
       } finally {
         setLoading(false);
       }
     };
 
     fetchEvent();
-  }, [id]);  // Dependency array with id to re-run if id changes
+  }, [id]); // Dependency array with id to re-run if id changes
 
   const handleQuantityChange = (e) => {
     const value = parseInt(e.target.value);
@@ -82,50 +85,57 @@ const EventDetail = () => {
   const handleConfirmPurchase = async () => {
     setPurchaseProcessing(true);
     try {
-
-      const response = await axios.post("http://localhost:5000/api/tickets/buy", {
-        event_id: event.id
-      },{
-        headers: { "Content-Type": "application/json" , token: localStorage.getItem("token")},
-      }
+      const response = await axios.post(
+        "http://localhost:5000/api/tickets/buy",
+        {
+          event_id: event.id,
+        },
+        {
+          headers: {
+            "Content-Type": "application/json",
+            token: localStorage.getItem("token"),
+          },
+        }
       );
-  
+
       // Handle the signup response
       // if (!response.ok) {
       //   throw new Error("Signup failed");
       // }
-  
+
       const data = response.data;
-      console.log(data)
+      console.log(data);
 
       // Check for connected wallet with improved detection
-      const connectedWallet = localStorage.getItem('walletAddress') || localStorage.getItem('connectedWallet');
-      
+      const connectedWallet =
+        localStorage.getItem("walletAddress") ||
+        localStorage.getItem("connectedWallet");
+
       // Log the wallet status for debugging
-      console.log('Wallet connection status:', { 
-        walletAddress: localStorage.getItem('walletAddress'),
-        connectedWallet: localStorage.getItem('connectedWallet'),
-        userWallet: user?.walletAddress // Add this line to check user context
+      console.log("Wallet connection status:", {
+        walletAddress: localStorage.getItem("walletAddress"),
+        connectedWallet: localStorage.getItem("connectedWallet"),
+        userWallet: user?.walletAddress, // Add this line to check user context
       });
-      
+
       // Check if wallet is connected from the auth context
       if (!connectedWallet && !user?.walletAddress) {
-        throw new Error('Please connect your wallet to purchase tickets');
+        throw new Error("Please connect your wallet to purchase tickets");
       }
-      
+
       // Use the wallet address from either localStorage or user context
       const buyerWalletAddress = connectedWallet || user?.walletAddress;
 
       // Get current events and tickets
-      const events = JSON.parse(localStorage.getItem('events') || '[]');
-      const tickets = JSON.parse(localStorage.getItem('tickets') || '[]');
+      const events = JSON.parse(localStorage.getItem("events") || "[]");
+      const tickets = JSON.parse(localStorage.getItem("tickets") || "[]");
 
       // // Update event's available tickets
-      const updatedEvents = events.map(e => {
+      const updatedEvents = events.map((e) => {
         if (e.id === event.id) {
           return {
             ...e,
-            availableTickets: e.availableTickets - quantity
+            availableTickets: e.availableTickets - quantity,
           };
         }
         return e;
@@ -143,18 +153,18 @@ const EventDetail = () => {
         quantity: quantity,
         price: event.price * quantity,
         purchaseDate: new Date().toISOString(),
-        status: 'valid'
+        status: "valid",
       };
 
       // Update localStorage
-      localStorage.setItem('events', JSON.stringify(updatedEvents));
-      localStorage.setItem('tickets', JSON.stringify([...tickets, newTicket]));
+      localStorage.setItem("events", JSON.stringify(updatedEvents));
+      localStorage.setItem("tickets", JSON.stringify([...tickets, newTicket]));
 
       // Show success message and redirect
-      alert('Tickets purchased successfully!');
-      navigate('/my-tickets');
+      alert("Tickets purchased successfully!");
+      navigate("/my-tickets");
     } catch (err) {
-      alert(err.message || 'Error purchasing tickets');
+      alert(err.message || "Error purchasing tickets");
     } finally {
       setPurchaseProcessing(false);
       setShowPurchaseModal(false);
@@ -174,7 +184,7 @@ const EventDetail = () => {
     return (
       <div className="event-detail-error">
         <p>{error}</p>
-        <button onClick={() => navigate('/events')}>Back to Events</button>
+        <button onClick={() => navigate("/events")}>Back to Events</button>
       </div>
     );
   }
@@ -183,7 +193,7 @@ const EventDetail = () => {
     return (
       <div className="event-detail-error">
         <p>Event not found</p>
-        <button onClick={() => navigate('/events')}>Back to Events</button>
+        <button onClick={() => navigate("/events")}>Back to Events</button>
       </div>
     );
   }
@@ -198,7 +208,10 @@ const EventDetail = () => {
       <div className="event-detail-content">
         <div className="event-detail-main">
           <div className="event-image">
-            <img src={event.image || 'https://via.placeholder.com/800x400'} alt={event.title} />
+            <img
+              src={event.image || "https://via.placeholder.com/800x400"}
+              alt={event.title}
+            />
           </div>
 
           <div className="event-info">
@@ -240,7 +253,7 @@ const EventDetail = () => {
             <div className="quantity-selector">
               <label htmlFor="quantity">Number of tickets:</label>
               <div className="quantity-controls">
-                <button 
+                <button
                   onClick={() => setQuantity(Math.max(1, quantity - 1))}
                   disabled={quantity <= 1}
                 >
@@ -254,8 +267,10 @@ const EventDetail = () => {
                   min="1"
                   max={event.availableTickets}
                 />
-                <button 
-                  onClick={() => setQuantity(Math.min(event.availableTickets, quantity + 1))}
+                <button
+                  onClick={() =>
+                    setQuantity(Math.min(event.availableTickets, quantity + 1))
+                  }
                   disabled={quantity >= event.availableTickets}
                 >
                   +
@@ -268,12 +283,12 @@ const EventDetail = () => {
               <span className="value">${event.price * quantity}</span>
             </div>
 
-            <button 
+            <button
               className="purchase-button"
               onClick={handlePurchase}
               disabled={event.availableTickets === 0}
             >
-              {event.availableTickets === 0 ? 'Sold Out' : 'Purchase Tickets'}
+              {event.availableTickets === 0 ? "Sold Out" : "Purchase Tickets"}
             </button>
           </div>
         </div>
@@ -284,26 +299,39 @@ const EventDetail = () => {
           <div className="modal-content">
             <h2>Confirm Purchase</h2>
             <div className="purchase-summary">
-              <p><strong>Event:</strong> {event.title}</p>
-              <p><strong>Date:</strong> {new Date(event.date).toLocaleDateString()}</p>
-              <p><strong>Time:</strong> {event.time}</p>
-              <p><strong>Location:</strong> {event.location}</p>
-              <p><strong>Quantity:</strong> {quantity}</p>
-              <p><strong>Total Price:</strong> ${event.price * quantity}</p>
+              <p>
+                <strong>Event:</strong> {event.title}
+              </p>
+              <p>
+                <strong>Date:</strong>{" "}
+                {new Date(event.date).toLocaleDateString()}
+              </p>
+              <p>
+                <strong>Time:</strong> {event.time}
+              </p>
+              <p>
+                <strong>Location:</strong> {event.location}
+              </p>
+              <p>
+                <strong>Quantity:</strong> {quantity}
+              </p>
+              <p>
+                <strong>Total Price:</strong> ${event.price * quantity}
+              </p>
             </div>
             <div className="modal-actions">
-              <button 
+              <button
                 onClick={() => setShowPurchaseModal(false)}
                 disabled={purchaseProcessing}
               >
                 Cancel
               </button>
-              <button 
+              <button
                 onClick={handleConfirmPurchase}
                 disabled={purchaseProcessing}
                 className="confirm-button"
               >
-                {purchaseProcessing ? 'Processing...' : 'Confirm Purchase'}
+                {purchaseProcessing ? "Processing..." : "Confirm Purchase"}
               </button>
             </div>
           </div>
