@@ -1,60 +1,63 @@
 const { Router } = require("express");
-const { ticketModel, userModel } = require("../db/db");
+const { ticketModel, userModel, transactionModel } = require("../db/db");
 const {userMiddleware} = require("../middlewares/userMiddleware");
 const uploadJsonToPinata = require("../comman_functions/upload")
 const ticketsRouter = Router();
 
 async function getTicketId() {
   const maxUser = await ticketModel.findOne().sort({ ticket_id: -1 }).limit(1);
-  const maxUserId = maxUser ? ticketModel.ticket_id : 0; // Default to 0 if no users exist
+  const maxUserId = maxUser ? maxUser.ticket_id : 0; // Corrected to maxUser.ticket_id
   return maxUserId + 1;
 }
 
+async function getTransactionId() {
+  const maxTransaction = await transactionModel.findOne().sort({ transaction_id: -1 }).limit(1);
+  const maxTransactionId = maxTransaction ? maxTransaction.transaction_id : 0; // Corrected to maxTransaction.transaction_id
+  return maxTransactionId + 1;
+}
 
 // Buy a ticket (wallet address required, triggers NFT minting)
-ticketsRouter.post("/buy", userMiddleware,async (req, res, next) => {
+ticketsRouter.post("/buy", userMiddleware, async (req, res, next) => {
   try {
-    const { event_id } = req.body;
-    const ticket_id = getTicketId();
+    const { event_id, amount_paid } = req.body;
+    const ticket_id = await getTicketId();
     const walletAddress = req.walletAddress;
-    // Check if all required fields are provided
-    // if (!ticket_id || !event_id || !walletAddress) {
-    //   return res.status(400).json({ message: "Please provide all required fields!" });
-    // }
-    
+
     const userData = await userModel.find({
-      wallet_address: walletAddress
-    })
-    const userId = userData.user_id;
-    const CID = await uploadJsonToPinata({ticket_id, event_id, userId});
+      wallet_address: walletAddress,
+    });
+    const userId = userData[0].user_id; // Make sure you're accessing the first element in the userData array.
+    
+    // Upload the JSON to Pinata and get the CID
+    const CID = await uploadJsonToPinata({ ticket_id, event_id, userId });
 
-
-    // Optionally check for duplicates (if necessary)
-    const existingTicket = await ticketModel.findOne({ ticket_id });
-    if (existingTicket) {
-      return res.status(409).json({ message: "Ticket already exists!" });
-    }
-
-    // Create new ticket
+    // Create the ticket in the database
     const newTicket = await ticketModel.create({
       ticket_id,
       event_id,
       wallet_address: walletAddress,
-      // token_id,
     });
+    
+    const newTransaction = await transactionModel.create({
+      transaction_id: await getTransactionId(),
+      wallet_address: walletAddress,
+      event_id,
+      ticket_id,
+      amount_paid,
+      transaction_hash: CID
+    })
 
-    // Return success response
-    res.status(200).json({ message: "Ticket generated successfully!", newTicket, CID });
+    // Return success response with CID
+    res.status(200).json({ message: "Ticket generated successfully!", newTicket, CID, newTransaction });
   } catch (error) {
     console.error("Error creating ticket:", error);
-    // Pass error to the error handler middleware (for centralized error handling)
-    next(error);
+    next(error); // Pass error to the error handler middleware
   }
 });
 
-ticketsRouter.get("/:wallet_address", async (req, res, next) => {
+ticketsRouter.get("/", userMiddleware, async (req, res, next) => {
     try{
-        const wallet_address = req.params.wallet_address;
+        const wallet_address = req.walletAddress;
         const ticketInfo = await ticketModel.find({wallet_address});
         if(!ticketInfo) res.status(404).json({message: "Ticket not found!"})
         res.status(200).json(ticketInfo)

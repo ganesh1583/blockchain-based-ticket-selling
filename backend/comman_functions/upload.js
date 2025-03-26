@@ -1,63 +1,38 @@
+// uploadJsonToPinata.js
 const axios = require('axios');
 const FormData = require('form-data');
-const { env } = require('process');
-const { json } = require('stream/consumers');
 
-// Pinata API Credentials
-const PINATA_API_KEY = process.env.PINATA_API_KEY;
-const PINATA_SECRET_API_KEY = process.env.PINATA_SECRET_API_KEY;
+// Function to upload JSON data to Pinata
+async function uploadJsonToPinata(data) {
+  const formData = new FormData();
+  const jsonData = JSON.stringify(data); // JSON data you want to upload
+  formData.append('file', Buffer.from(jsonData, 'utf-8'), {
+    filename: 'ticket.json',
+    contentType: 'application/json',
+  });
 
-// Function to Upload JSON to Pinata
-const uploadJsonToPinata = async (jsonData) => {
-    const formData = new FormData();
+  const pinataOptions = JSON.stringify({
+    cidVersion: 1,
+  });
 
-    // Convert JSON data to string
-    const jsonString = JSON.stringify(jsonData);
+  formData.append('pinataOptions', pinataOptions);
 
-    // Create a readable stream from the JSON string
-    const stream = Buffer.from(jsonString);
-
-    formData.append('file', stream, {
-        filename: 'data.json',
-        contentType: 'application/json',
+  try {
+    const response = await axios.post('https://api.pinata.cloud/pinning/pinFileToIPFS', formData, {
+      headers: {
+        'Content-Type': `multipart/form-data; boundary=${formData._boundary}`,
+        'pinata_api_key': process.env.PINATA_API_KEY,
+        'pinata_secret_api_key': process.env.PINATA_SECRET_API_KEY,
+      },
     });
-
-    const pinataMetadata = JSON.stringify({
-        name: jsonData.ticket_id,  // You can give it any name you'd like
-    });
-
-    formData.append('pinataMetadata', pinataMetadata);
-
-    const pinataOptions = JSON.stringify({
-        cidVersion: 1,
-    });
-
-    formData.append('pinataOptions', pinataOptions);
-
-    try {
-        const response = await axios.post('https://api.pinata.cloud/pinning/pinFileToIPFS', formData, {
-            headers: {
-                'Content-Type': `multipart/form-data; boundary=${formData._boundary}`,
-                'pinata_api_key': PINATA_API_KEY,
-                'pinata_secret_api_key': PINATA_SECRET_API_KEY,
-            },
-        });
-
-        console.log('JSON data uploaded successfully!');
-        console.log('CID:', response.data.IpfsHash); // The hash of the uploaded JSON object
-        return response.data.IpfsHash;
-    } catch (error) {
-        console.error('Error uploading JSON to Pinata:', error.response ? error.response.data : error.message);
-    }
-};
-
-
-// Call the function with the JSON data
-// uploadJsonToPinata(myJsonData);
-module.exports = {
-    uploadJsonToPinata
+    return response.data.IpfsHash; // The CID of the uploaded file
+  } catch (error) {
+    console.error('Error uploading JSON to Pinata:', error.message);
+    throw new Error('Error uploading to Pinata');
+  }
 }
 
+module.exports = uploadJsonToPinata;
 
 // const axios = require('axios');
 // const FormData = require('form-data');

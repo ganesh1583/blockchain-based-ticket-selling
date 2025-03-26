@@ -10,26 +10,47 @@ const MyTickets = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const fetchTickets = () => {
+    const fetchTickets = async () => {
       try {
-        const storedTickets = localStorage.getItem('tickets');
-        if (storedTickets) {
-          setTickets(JSON.parse(storedTickets));
+        const response = await fetch(
+          `http://localhost:5000/api/tickets/`,
+          {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+              token: localStorage.getItem("token"), // Make sure to pass the token
+            },
+          }
+        );
+
+        // Check if the response is successful
+        if (!response.ok) {
+          throw new Error("Failed to fetch event");
         }
+
+        const data = await response.json();
+        console.log(data[0]);
+        setTickets(data[0]);
+
+        // const storedTickets = localStorage.getItem('tickets');
+        // if (storedTickets) {
+        //   setTickets(JSON.parse(storedTickets));
+        // }
       } catch (err) {
         setError('Failed to load tickets');
       } finally {
         setLoading(false);
       }
+      
     };
 
     fetchTickets();
   }, []);
 
-  const filteredTickets = tickets.filter(ticket => {
+  const filteredTickets = () => {tickets.filter(ticket => {
     if (filter === 'all') return true;
     return ticket.status === filter;
-  });
+  });}
 
   const handleViewTicket = (ticket) => {
     // Store the selected ticket in localStorage for the TicketDetail component
