@@ -1,11 +1,12 @@
 const { Router } = require("express");
 const { transactionModel } = require("../db/db");
+// const {userMiddleware} = require("../middlewares/userMiddleware");
 const transactionsRouter = Router();
 
 // Fetch transaction history of a user
-transactionsRouter.get("/:wallet_address", async (req, res) => {
+transactionsRouter.get("/",  async (req, res) => {
   try {
-      const wallet_address = req.params.wallet_address;
+      const wallet_address = req.walletAddress;
       const transactions = await transactionModel.find({ wallet_address });
       
       if (!transactions.length) {

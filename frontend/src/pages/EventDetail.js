@@ -19,7 +19,7 @@ const EventDetail = () => {
     const fetchEvent = async () => {
       try {
         setLoading(true);
-
+        console.log(id)
         // API call to fetch event by event_id
         const response = await fetch(
           `http://localhost:5000/api/events/byId/${id}`,
@@ -27,7 +27,7 @@ const EventDetail = () => {
             method: "GET",
             headers: {
               "Content-Type": "application/json",
-              token: localStorage.getItem("authToken"), // Make sure to pass the token
+              token: localStorage.getItem("token"), // Make sure to pass the token
             },
           }
         );
@@ -89,6 +89,7 @@ const EventDetail = () => {
         "http://localhost:5000/api/tickets/buy",
         {
           event_id: event.id,
+          amount_paid: event.price * quantity
         },
         {
           headers: {
@@ -98,67 +99,62 @@ const EventDetail = () => {
         }
       );
 
-      // Handle the signup response
-      // if (!response.ok) {
-      //   throw new Error("Signup failed");
-      // }
-
       const data = response.data;
       console.log(data);
 
       // Check for connected wallet with improved detection
-      const connectedWallet =
-        localStorage.getItem("walletAddress") ||
-        localStorage.getItem("connectedWallet");
+      // const connectedWallet =
+      //   localStorage.getItem("walletAddress") ||
+      //   localStorage.getItem("connectedWallet");
 
-      // Log the wallet status for debugging
-      console.log("Wallet connection status:", {
-        walletAddress: localStorage.getItem("walletAddress"),
-        connectedWallet: localStorage.getItem("connectedWallet"),
-        userWallet: user?.walletAddress, // Add this line to check user context
-      });
+      // // Log the wallet status for debugging
+      // console.log("Wallet connection status:", {
+      //   walletAddress: localStorage.getItem("walletAddress"),
+      //   connectedWallet: localStorage.getItem("connectedWallet"),
+      //   userWallet: user?.walletAddress, // Add this line to check user context
+      // });
 
-      // Check if wallet is connected from the auth context
-      if (!connectedWallet && !user?.walletAddress) {
-        throw new Error("Please connect your wallet to purchase tickets");
-      }
+      // // Check if wallet is connected from the auth context
+      // if (!connectedWallet && !user?.walletAddress) {
+      //   throw new Error("Please connect your wallet to purchase tickets");
+      // }
 
-      // Use the wallet address from either localStorage or user context
-      const buyerWalletAddress = connectedWallet || user?.walletAddress;
+      // // Use the wallet address from either localStorage or user context
+      // const buyerWalletAddress = connectedWallet || user?.walletAddress;
 
-      // Get current events and tickets
-      const events = JSON.parse(localStorage.getItem("events") || "[]");
-      const tickets = JSON.parse(localStorage.getItem("tickets") || "[]");
+      // // Get current events and tickets
+      // const events = JSON.parse(localStorage.getItem("events") || "[]");
+      // const tickets = JSON.parse(localStorage.getItem("tickets") || "[]");
 
-      // // Update event's available tickets
-      const updatedEvents = events.map((e) => {
-        if (e.id === event.id) {
-          return {
-            ...e,
-            availableTickets: e.availableTickets - quantity,
-          };
-        }
-        return e;
-      });
+      // // // Update event's available tickets
+      // const updatedEvents = events.map((e) => {
+      //   if (e.id === event.id) {
+      //     return {
+      //       ...e,
+      //       availableTickets: e.availableTickets - quantity,
+      //     };
+      //   }
+      //   return e;
+      // });
 
-      // Create new ticket with wallet address
-      const newTicket = {
-        id: `ticket-${Date.now()}`,
-        eventId: event.id,
-        walletAddress: buyerWalletAddress,
-        eventTitle: event.title,
-        eventDate: event.date,
-        eventTime: event.time,
-        eventLocation: event.location,
-        quantity: quantity,
-        price: event.price * quantity,
-        purchaseDate: new Date().toISOString(),
-        status: "valid",
-      };
+      // // Create new ticket with wallet address
+      // const newTicket = {
+      //   id: `ticket-${Date.now()}`,
+      //   eventId: event.id,
+      //   walletAddress: buyerWalletAddress,
+      //   eventTitle: event.title,
+      //   eventDate: event.date,
+      //   eventTime: event.time,
+      //   eventLocation: event.location,
+      //   quantity: quantity,
+      //   price: event.price * quantity,
+      //   purchaseDate: new Date().toISOString(),
+      //   status: "valid",
+      // };
 
-      // Update localStorage
-      localStorage.setItem("events", JSON.stringify(updatedEvents));
-      localStorage.setItem("tickets", JSON.stringify([...tickets, newTicket]));
+      // // Update localStorage
+      // localStorage.setItem("events", JSON.stringify(updatedEvents));
+      // localStorage.setItem("tickets", JSON.stringify([...tickets, newTicket]));
 
       // Show success message and redirect
       alert("Tickets purchased successfully!");

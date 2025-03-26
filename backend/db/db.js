@@ -36,7 +36,8 @@ const ticketSchema = new Schema({
 const transactionSchema = new Schema({
     transaction_id: { type: Number, unique: true, required: true },
     wallet_address: { type: String, required: true },
-    event_id: { type: ObjectId, ref: "event" }, //changed it from concert_id => event_id
+    ticket_id: { type: String, required: true },
+    event_id: { type: Number, ref: "event" }, //changed it from concert_id => event_id
     amount_paid: { type: Number, required: true },
     transaction_hash: { type: String, required: true },
     timestamp: { type: Date, default: Date.now }
