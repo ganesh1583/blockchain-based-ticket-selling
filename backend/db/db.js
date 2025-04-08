@@ -28,7 +28,7 @@ const ticketSchema = new Schema({
     ticket_id: { type: Number, unique: true, required: true },
     event_id: { type: Number, ref: "event" }, //changed it from concert_id => event_id
     wallet_address: { type: String, required: true },
-    token_id: { type: Number, unique: true },
+    token_id: { type: Number },
     purchase_date: { type: Date, default: Date.now },
     cid: { type: String}
 });

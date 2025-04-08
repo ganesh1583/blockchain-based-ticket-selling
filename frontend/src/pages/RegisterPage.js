@@ -63,7 +63,7 @@ const RegisterPage = () => {
   
       // Sign the message with the nonce
       const signature = await signer.signMessage(nonce.toString());
-  
+      console.log("singature: " + signature);
       // Send the signup request with the signature
       const response = await fetch("http://localhost:5000/api/users/signup", {
         method: "POST",
@@ -74,7 +74,7 @@ const RegisterPage = () => {
           signature: signature,
         }),
       });
-  
+      console.log("got res");
       // Handle the signup response
       if (!response.ok) {
         throw new Error("Signup failed");

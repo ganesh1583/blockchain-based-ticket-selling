@@ -16,6 +16,7 @@ async function getUserId() {
 }
 
 usersRouter.post("/signup", async (req, res, next) => {
+  console.log("Im in signup");
   const { username, walletAddress, signature } = req.body;
 
   if (!username || !walletAddress || !signature) {

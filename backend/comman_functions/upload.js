@@ -7,7 +7,7 @@ async function uploadJsonToPinata(data) {
   const formData = new FormData();
   const jsonData = JSON.stringify(data); // JSON data you want to upload
   formData.append('file', Buffer.from(jsonData, 'utf-8'), {
-    filename: 'ticket.json',
+    filename: `${data.ticket_id}.json`,
     contentType: 'application/json',
   });
 

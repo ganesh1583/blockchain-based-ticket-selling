@@ -40,6 +40,7 @@ ticketsRouter.post("/buy", userMiddleware, async (req, res, next) => {
       ticket_id,
       event_id,
       wallet_address: walletAddress,
+      token_id: ticket_id,
     });
     
     const newTransaction = await transactionModel.create({
